@@ -1,0 +1,76 @@
+{
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "description": "Unimodal RGB multi-class anomaly detection and localization on MVTec-AD, reporting class-wise mean image-level and pixel-level AUROC from Table I.",
+      "weight": 0.25,
+      "primary_metric": "pixel_auroc",
+      "metrics": {
+        "image_auroc": {"higher_is_better": true, "coefficient": 0.6},
+        "pixel_auroc": {"higher_is_better": true, "coefficient": 1.0},
+        "extra_baseline_params_M": {"higher_is_better": false, "coefficient": -0.2}
+      },
+      "results": {
+        "glad": {"type": "baseline", "image_auroc": 97.5, "pixel_auroc": 97.3, "extra_baseline_params_M": 0.0},
+        "glad_ucf": {"type": "proposed", "image_auroc": 98.7, "pixel_auroc": 98.2, "extra_baseline_params_M": 0.0},
+        "hvq_trans": {"type": "baseline", "image_auroc": 98.0, "pixel_auroc": 97.3, "extra_baseline_params_M": 0.0},
+        "hvq_trans_ucf": {"type": "proposed", "image_auroc": 99.0, "pixel_auroc": 98.0, "extra_baseline_params_M": 0.0},
+        "anomaldf": {"type": "baseline", "image_auroc": 96.8, "pixel_auroc": 98.1, "extra_baseline_params_M": 0.0},
+        "anomaldf_ucf": {"type": "proposed", "image_auroc": 98.5, "pixel_auroc": 98.8, "extra_baseline_params_M": 0.0}
+      }
+    },
+    "rgb_visa_multiclass": {
+      "description": "Unimodal RGB multi-class anomaly detection and localization on VisA, reporting class-wise mean image-level and pixel-level AUROC from Table III.",
+      "weight": 0.25,
+      "primary_metric": "image_auroc",
+      "metrics": {
+        "image_auroc": {"higher_is_better": true, "coefficient": 1.0},
+        "pixel_auroc": {"higher_is_better": true, "coefficient": 0.7},
+        "extra_baseline_params_M": {"higher_is_better": false, "coefficient": -0.2}
+      },
+      "results": {
+        "glad": {"type": "baseline", "image_auroc": 90.1, "pixel_auroc": 97.4, "extra_baseline_params_M": 0.0},
+        "glad_ucf": {"type": "proposed", "image_auroc": 93.2, "pixel_auroc": 98.1, "extra_baseline_params_M": 0.0},
+        "hvq_trans": {"type": "baseline", "image_auroc": 91.3, "pixel_auroc": 98.5, "extra_baseline_params_M": 0.0},
+        "hvq_trans_ucf": {"type": "proposed", "image_auroc": 93.4, "pixel_auroc": 98.6, "extra_baseline_params_M": 0.0},
+        "anomaldf": {"type": "baseline", "image_auroc": 90.5, "pixel_auroc": 97.5, "extra_baseline_params_M": 0.0},
+        "anomaldf_ucf": {"type": "proposed", "image_auroc": 94.3, "pixel_auroc": 99.2, "extra_baseline_params_M": 0.0}
+      }
+    },
+    "rgb3d_mvtec3d": {
+      "description": "Multimodal RGB-3D anomaly detection and localization on MVTec 3D-AD, reporting mean I-AUROC, P-AUROC, and strict AUPRO@1% from Table V.",
+      "weight": 0.25,
+      "primary_metric": "aupro_1",
+      "metrics": {
+        "image_auroc": {"higher_is_better": true, "coefficient": 0.7},
+        "pixel_auroc": {"higher_is_better": true, "coefficient": 0.7},
+        "aupro_1": {"higher_is_better": true, "coefficient": 1.0},
+        "extra_baseline_params_M": {"higher_is_better": false, "coefficient": -0.2}
+      },
+      "results": {
+        "m3dm": {"type": "baseline", "image_auroc": 94.5, "pixel_auroc": 99.1, "aupro_1": 39.4, "extra_baseline_params_M": 0.0},
+        "m3dm_ucf": {"type": "proposed", "image_auroc": 96.2, "pixel_auroc": 99.3, "aupro_1": 45.6, "extra_baseline_params_M": 0.0},
+        "cfm": {"type": "baseline", "image_auroc": 95.4, "pixel_auroc": 99.3, "aupro_1": 45.5, "extra_baseline_params_M": 0.0},
+        "cfm_ucf": {"type": "proposed", "image_auroc": 96.4, "pixel_auroc": 99.4, "aupro_1": 46.3, "extra_baseline_params_M": 0.0}
+      }
+    },
+    "rgbtext_industrial_zero_shot": {
+      "description": "Zero-shot RGB-Text anomaly detection and localization averaged over seven industrial datasets, reporting image AUROC/AP and pixel AUROC/AUPRO from Table VII.",
+      "weight": 0.25,
+      "primary_metric": "pixel_aupro",
+      "metrics": {
+        "image_auroc": {"higher_is_better": true, "coefficient": 0.7},
+        "image_ap": {"higher_is_better": true, "coefficient": 0.4},
+        "pixel_auroc": {"higher_is_better": true, "coefficient": 0.7},
+        "pixel_aupro": {"higher_is_better": true, "coefficient": 1.0},
+        "extra_baseline_params_M": {"higher_is_better": false, "coefficient": -0.2}
+      },
+      "results": {
+        "aprilgan": {"type": "baseline", "image_auroc": 84.5, "image_ap": 86.8, "pixel_auroc": 90.9, "pixel_aupro": 74.6, "extra_baseline_params_M": 0.0},
+        "aprilgan_ucf": {"type": "proposed", "image_auroc": 87.6, "image_ap": 89.0, "pixel_auroc": 92.5, "pixel_aupro": 78.0, "extra_baseline_params_M": 0.0},
+        "adaclip": {"type": "baseline", "image_auroc": 88.5, "image_ap": 90.4, "pixel_auroc": 94.5, "pixel_aupro": 40.5, "extra_baseline_params_M": 0.0},
+        "adaclip_ucf": {"type": "proposed", "image_auroc": 89.1, "image_ap": 90.7, "pixel_auroc": 94.8, "pixel_aupro": 64.7, "extra_baseline_params_M": 0.0},
+        "anomalyclip_ucf": {"type": "proposed", "image_auroc": 89.8, "image_ap": 91.7, "pixel_auroc": 95.5, "pixel_aupro": 87.1, "extra_baseline_params_M": 0.0}
+      }
+    }
+  }
+}

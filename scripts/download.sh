@@ -12,12 +12,9 @@
 # Estimated total download size: TODO GB
 # Estimated disk usage after extraction: TODO GB
 #
-# During reproduction, prefer downloading to shared directories
-# (shared/datasets/, shared/models/) so other papers can reuse them.
-# You do not need to run this script during reproduction — it exists
-# for future portability. Write it to download to workspace-local
-# paths (data/, checkpoints/) instead of the shared directories
-# so a future user with just the workspace can run this script and get everything they need.
+# This portability script must fetch every required external resource into
+# workspace-local paths such as data/downloads/ or checkpoints/ so a fresh
+# clone can reproduce the environment without machine-specific caches.
 
 set -e
 
