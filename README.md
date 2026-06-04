@@ -130,6 +130,11 @@ Training uses normal images only, with synthetic anomalies allowed for learning 
 
 </details>
 
+### Iteration 3: gpt-5.5
+- **Milestone**: `method_runs` | **Status**: error
+- **Working time**: 37m | **GPU**: 0.0h
+- **Jobs**: 4 total (2 completed, 2 failed)
+
 
 ---
 
