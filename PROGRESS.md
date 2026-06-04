@@ -12,16 +12,18 @@ The second compute job completed training and wrote prediction artifacts plus an
 
 The third compute job completed end-to-end. At the compact synthetic scale, UCF improved the primary localization metric from 71.1 pixel AUROC to 75.4 pixel AUROC and improved diagnostic AUPRO/F1, with a 0.16M-parameter overhead. This reaches `core_claim` for a reduced RGB anomaly-localization setting.
 
+The fourth compute job used the final 40-epoch default, matching the paper's epoch count at the compact scale. It completed and validated cleanly. Pixel AUROC remained above the raw matching-cost baseline at 74.9 versus 71.1, while image AUROC improved slightly to 52.5. The 24-epoch run had a marginally better pixel AUROC, but the final packaged default is the paper-aligned 40-epoch schedule.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
 
 - `anomaldf` baseline: image AUROC 51.7, pixel AUROC 71.1, UCF parameters 0.00M.
-- `anomaldf_ucf`: image AUROC 52.3, pixel AUROC 75.4, UCF parameters 0.16M.
+- `anomaldf_ucf`: image AUROC 52.5, pixel AUROC 74.9, UCF parameters 0.16M.
 
 ## Remaining
 
-Run one final compact 40-epoch job, matching the paper's epoch count, to see whether the score can improve further before wrap-up.
+To go beyond `core_claim`, the next meaningful step would be replacing the compact procedural feature source with cached DINOv2/AnomalDF features on MVTec-AD or a closer public industrial anomaly dataset. The current environment is complete and usable for the reduced UCF benchmark.
 
 ## Issues
 

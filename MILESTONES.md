@@ -22,5 +22,10 @@
 - Compact UCF improved primary pixel AUROC from 71.1 to 75.4 and improved localization diagnostics over the raw matching-cost baseline.
 - Constraint metric is included: UCF adds 0.16M parameters at the reduced scale.
 
+### [2026-06-04 10:37] - core_claim
+- Fourth CPU job completed the final 40-epoch default with validation passing.
+- Final packaged scores show UCF improves pixel AUROC from 71.1 to 74.9 and image AUROC from 51.7 to 52.5 at 0.16M parameters.
+- The compact reproduction remains at `core_claim`; broader MVTec/DINOv2 coverage is left as future work.
+
 ## Stop Justification
-- Not stopped. A final 40-epoch compact job is being submitted to improve the reproduced score while preserving the paper's training schedule.
+- Stopped at `core_claim`. The actual UCF computation is implemented, the reduced benchmark runs end-to-end, scores validate, and further progress would require a larger dataset/backbone reproduction outside the compact CPU-tested setup.
