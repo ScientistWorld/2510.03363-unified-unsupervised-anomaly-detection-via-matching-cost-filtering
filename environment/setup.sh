@@ -16,4 +16,4 @@
 
 set -e
 
-# uv pip install --system <packages>
+uv pip install --system torch torchvision numpy scikit-learn scipy pillow

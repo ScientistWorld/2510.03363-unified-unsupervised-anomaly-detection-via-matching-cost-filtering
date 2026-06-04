@@ -2,20 +2,11 @@
 
 **Current: none**
 
-<!-- Milestone levels (update "Current" above as you progress):
-  none             — just started, no meaningful progress yet
-  method_runs      — the paper's method executes end-to-end without errors
-  core_claim       — minimum experiment supports the paper's central claim
-  core_claim_plus  — core claim reproduced on additional settings
-  secondary_claims — secondary results or contributions reproduced
-  majority         — more than half of reported results reproduced
-  near_complete    — most results reproduced, only minor gaps remain
-  full             — all reported results reproduced
--->
-
 ## Progress Log
 
-<!-- Write your progress here -->
+### [2026-06-04 00:00] - none
+- Read the paper and identified UCF's core computational steps: hierarchical feature extraction, patch-template cost-volume construction, guided 3D filtering, class-aware loss, and top-k anomaly scoring.
+- Implemented a compact RGB reproduction environment and staged it for the first compute-node run.
 
 ## Stop Justification
-- Completed at milestone `none`.
+- Not stopped. First job is being submitted to test the implementation.

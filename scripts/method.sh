@@ -1,14 +1,14 @@
 #!/bin/bash
-# Run the paper's proposed method.
-#
-# This script trains/runs the paper's method using code in method/.
-#
-# Usage:
-#   bash scripts/method.sh
-
-set -e
+set -euo pipefail
 
 cd /home/user
 
-# TODO: run the paper's method
-# TODO: call scripts/evaluate.sh to score
+EPOCHS="${EPOCHS:-12}"
+BATCH_SIZE="${BATCH_SIZE:-8}"
+python -m method.train_ucf \
+  --epochs "$EPOCHS" \
+  --batch-size "$BATCH_SIZE" \
+  --output outputs/ucf_synthetic \
+  --checkpoint checkpoints/ucf_synthetic.pt
+
+bash scripts/evaluate.sh outputs/ucf_synthetic/predictions.npz

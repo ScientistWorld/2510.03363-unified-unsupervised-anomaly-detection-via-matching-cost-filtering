@@ -1,15 +1,15 @@
 # Evaluation
 
-How success is measured. Describe only the metrics, targets, and evaluation procedure — do NOT describe the paper's method or how they achieved these results. Think of this as a general evaluation protocal for other scientists trying to solve the same problem, where they should not see this paper's solution.
-
 ## Metrics
 
-<!-- What metrics are used? How are they computed? What does higher/lower mean? -->
+Image-level AUROC measures whether anomalous images receive higher image scores than normal images. Pixel-level AUROC measures whether anomalous pixels receive higher heatmap scores than normal pixels. Both metrics are reported as percentages, and higher is better.
+
+The constraint metric is added trainable parameter count in millions. Lower is better because the benchmark should reward improved anomaly detection without simply scaling model capacity.
 
 ## Baselines and Targets
 
-<!-- What performance levels exist as reference points? Include the paper's reported numbers as targets, and any standard baselines. A scientist agent should know what "good" looks like. -->
+The paper's selected reference for this compact reproduction is the RGB multi-class AnomalDF comparison on MVTec-AD. The target method is the same baseline with the anomaly-map refinement plug-in added.
 
 ## Evaluation Protocol
 
-<!-- How should evaluation be run? What data split, what conditions? Any important details about how to compare fairly (e.g., fixed seeds, specific test sets, averaging over runs). -->
+Training uses normal images only, with synthetic anomalies allowed for learning pixel-level supervision. Evaluation is on held-out normal and anomalous images with ground-truth masks. The evaluator reads saved prediction artifacts and computes metrics from those artifacts; it does not import or run the submitted method.

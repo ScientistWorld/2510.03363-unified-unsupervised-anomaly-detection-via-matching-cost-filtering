@@ -1,17 +1,13 @@
 # Problem Definition
 
-What problem does this paper address? Write this so that someone with no knowledge of the paper can understand what needs to be solved and how success is measured.
-
-Do NOT describe the paper's method or solution here — only the problem itself. Think about if a future scientist agent try to solve this problem from scratch without knowing what approach the paper took. If you leak the solution, you compromise the benchmark.
-
 ## Research Question
 
-<!-- What problem or challenge does this paper tackle? What gap in existing work does it address? -->
+Detect anomalous images and localize anomalous pixels when training data contains only normal examples. The target setting is multi-class visual anomaly detection: a single system must handle multiple visual categories and produce both an image-level anomaly score and a pixel-level anomaly heatmap.
 
 ## Why It Matters
 
-<!-- Why is this problem important? What would a good solution enable? Make it short -->
+Industrial inspection and medical screening often have abundant normal data but few labeled defects. A useful solution should identify subtle defects without requiring real anomaly labels for every category.
 
 ## Success Criteria
 
-<!-- What would a successful solution look like? What properties should it have? This is about the goal, not the paper's specific approach. Make it short -->
+A successful system separates normal from abnormal test images, localizes defect regions accurately, and does so without changing the upstream normal-template feature source or using real anomaly labels during training.
