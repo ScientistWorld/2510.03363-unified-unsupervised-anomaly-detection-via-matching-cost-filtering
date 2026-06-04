@@ -3,3 +3,4 @@ gpus: 0
 test: true
 milestone: none
 notes: "First compute-node run for compact UCF reproduction: train the cost-volume filter, evaluate saved artifacts, and validate scores."
+notes: "Retry after CPU timeout: reduced dataset, adaptive lower-resolution cost volume, and 4-epoch smoke run to produce scores."
