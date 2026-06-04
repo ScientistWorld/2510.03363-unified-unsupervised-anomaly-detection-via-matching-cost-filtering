@@ -10,13 +10,18 @@ The first compute job successfully entered training and the loss decreased from 
 
 The second compute job completed training and wrote prediction artifacts plus an initial `scores.json`, then failed in diagnostic AUPRO reporting because NumPy 2 no longer exposes `np.trapz`. The bug is fixed by using `np.trapezoid` with a fallback. The preliminary 4-epoch scores were image AUROC 51.7 to 52.7 but pixel AUROC 71.1 to 69.9, so UCF did not yet support the core claim.
 
+The third compute job completed end-to-end. At the compact synthetic scale, UCF improved the primary localization metric from 71.1 pixel AUROC to 75.4 pixel AUROC and improved diagnostic AUPRO/F1, with a 0.16M-parameter overhead. This reaches `core_claim` for a reduced RGB anomaly-localization setting.
+
 ## Results
 
-No successful reproduced scores yet. A failed 4-epoch run produced preliminary artifacts, but the next submitted job runs a longer reduced-scale training pass and should exit cleanly with `scoring/scores.json`.
+Successful compact reproduction results are written to `scoring/scores.json`:
+
+- `anomaldf` baseline: image AUROC 51.7, pixel AUROC 71.1, UCF parameters 0.00M.
+- `anomaldf_ucf`: image AUROC 52.3, pixel AUROC 75.4, UCF parameters 0.16M.
 
 ## Remaining
 
-Run the longer reduced compute job and inspect whether UCF improves over the raw template-matching baseline. If the method runs but does not beat the baseline, adjust loss weighting or procedural anomaly difficulty while preserving the UCF algorithm.
+Run one final compact 40-epoch job, matching the paper's epoch count, to see whether the score can improve further before wrap-up.
 
 ## Issues
 
@@ -25,4 +30,4 @@ The exact MVTec-AD dataset and DINOv2/AnomalDF backbone are not used in this fir
 ## Deviations from Paper
 
 - The paper evaluates on MVTec-AD with DINOv2/AnomalDF features and normal-image templates. This reproduction uses a deterministic procedural multi-class RGB anomaly dataset and a frozen handcrafted feature pyramid. This is a scale/resource substitution for the feature source and data, not a replacement of the UCF computation: the implementation still builds hierarchical patch-template cosine cost volumes, applies guided 3D cost filtering, trains on synthetic anomaly masks, and evaluates baseline versus UCF maps.
-- The paper trains for 40 epochs with batch size 8. The submitted smoke jobs use fewer epochs and smaller procedural splits to fit the CPU test-node limit. The script keeps epochs configurable through `EPOCHS`.
+- The paper trains for 40 epochs with batch size 8. The final compact default now uses 40 epochs and batch size 8, but the procedural split and feature/cost-volume scale remain reduced to fit the CPU test-node limit. The script keeps epochs configurable through `EPOCHS`.

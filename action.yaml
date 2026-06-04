@@ -1,5 +1,5 @@
 action: submit
 gpus: 0
 test: true
-milestone: none
-notes: "Retry after evaluator failure: NumPy 2 AUPRO fix plus 24-epoch compact UCF training to seek a clean end-to-end run and improved scores."
+milestone: core_claim
+notes: "Final compact refinement run: use the paper's 40-epoch schedule on the reduced RGB UCF setup to try to improve the current core-claim scores."

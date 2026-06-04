@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd /home/user
 
-EPOCHS="${EPOCHS:-24}"
+EPOCHS="${EPOCHS:-40}"
 BATCH_SIZE="${BATCH_SIZE:-8}"
 python -m method.train_ucf \
   --epochs "$EPOCHS" \

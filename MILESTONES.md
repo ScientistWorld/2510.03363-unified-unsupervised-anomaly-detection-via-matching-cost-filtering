@@ -1,6 +1,6 @@
 # Reproduction Milestones
 
-**Current: none**
+**Current: core_claim**
 
 ## Progress Log
 
@@ -17,5 +17,10 @@
 - The run failed during diagnostic AUPRO reporting because NumPy 2 removed `np.trapz`; this is fixed in the evaluator.
 - Preliminary four-epoch scores did not yet support the core claim, so the next job increases training to 24 epochs.
 
+### [2026-06-04 10:28] - core_claim
+- Third CPU job completed `scripts/run.sh` end-to-end with validation passing.
+- Compact UCF improved primary pixel AUROC from 71.1 to 75.4 and improved localization diagnostics over the raw matching-cost baseline.
+- Constraint metric is included: UCF adds 0.16M parameters at the reduced scale.
+
 ## Stop Justification
-- Not stopped. A longer fixed job is being submitted to test whether the compact UCF reproduction can reach the core claim.
+- Not stopped. A final 40-epoch compact job is being submitted to improve the reproduced score while preserving the paper's training schedule.
