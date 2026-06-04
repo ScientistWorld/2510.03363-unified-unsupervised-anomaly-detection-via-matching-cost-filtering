@@ -58,4 +58,5 @@ def aupro(masks: np.ndarray, maps: np.ndarray, max_fpr: float = 0.3, steps: int 
     if fprs[-1] < max_fpr:
         fprs = np.r_[fprs, max_fpr]
         pros = np.r_[pros, pros[-1]]
-    return float(np.trapz(pros, fprs) / max_fpr * 100.0)
+    area = float(np.trapezoid(pros, fprs) if hasattr(np, "trapezoid") else np.trapz(pros, fprs))
+    return area / max_fpr * 100.0

@@ -2,4 +2,4 @@ action: submit
 gpus: 0
 test: true
 milestone: none
-notes: "Retry after CPU timeout: reduced dataset, adaptive lower-resolution cost volume, and 4-epoch smoke run to produce scores."
+notes: "Retry after evaluator failure: NumPy 2 AUPRO fix plus 24-epoch compact UCF training to seek a clean end-to-end run and improved scores."

@@ -8,13 +8,15 @@ Paper analysis is complete for the core UCF pipeline. The workspace now contains
 
 The first compute job successfully entered training and the loss decreased from 1.3078 to 0.2122 over six epochs, but the CPU test job timed out before evaluation. This indicates the implementation is structurally valid but the initial compact scale was still too slow for a one-hour CPU smoke run.
 
+The second compute job completed training and wrote prediction artifacts plus an initial `scores.json`, then failed in diagnostic AUPRO reporting because NumPy 2 no longer exposes `np.trapz`. The bug is fixed by using `np.trapezoid` with a fallback. The preliminary 4-epoch scores were image AUROC 51.7 to 52.7 but pixel AUROC 71.1 to 69.9, so UCF did not yet support the core claim.
+
 ## Results
 
-No reproduced scores yet. The next submitted job runs the reduced-scale `scripts/run.sh`, which trains the compact UCF model and writes `scoring/scores.json`.
+No successful reproduced scores yet. A failed 4-epoch run produced preliminary artifacts, but the next submitted job runs a longer reduced-scale training pass and should exit cleanly with `scoring/scores.json`.
 
 ## Remaining
 
-Run the reduced compute job and inspect whether UCF improves over the raw template-matching baseline. If the method runs but does not beat the baseline, adjust training duration, loss weighting, or procedural anomaly difficulty while preserving the UCF algorithm.
+Run the longer reduced compute job and inspect whether UCF improves over the raw template-matching baseline. If the method runs but does not beat the baseline, adjust loss weighting or procedural anomaly difficulty while preserving the UCF algorithm.
 
 ## Issues
 

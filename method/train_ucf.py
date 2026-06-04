@@ -117,7 +117,7 @@ def predict(model: UCFNet, builder: CostVolumeBuilder, loader: DataLoader, devic
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epochs", type=int, default=4)
+    parser.add_argument("--epochs", type=int, default=24)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--alpha", type=float, default=0.1)
