@@ -8,8 +8,8 @@
           "ucf_params_M": 0.0
         },
         "anomaldf_ucf": {
-          "image_auroc": 52.716049382716044,
-          "pixel_auroc": 69.88112990456284,
+          "image_auroc": 52.283950617283956,
+          "pixel_auroc": 75.41987733490227,
           "ucf_params_M": 0.16
         }
       }
