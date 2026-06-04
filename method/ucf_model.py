@@ -30,7 +30,9 @@ class FixedFeaturePyramid(nn.Module):
 
     def forward(self, x: torch.Tensor) -> list[torch.Tensor]:
         feats = []
-        for size in (32, 16, 8):
+        image_size = min(x.shape[-2:])
+        sizes = (max(6, image_size // 4), max(4, image_size // 8), max(3, image_size // 16))
+        for size in sizes:
             z = F.interpolate(x, size=(size, size), mode="bilinear", align_corners=False)
             f = F.conv2d(z, self.weight, padding=1)
             feats.append(torch.cat([z, f], dim=1))
@@ -47,7 +49,7 @@ def _cosine_cost(query: torch.Tensor, templates: torch.Tensor) -> torch.Tensor:
 
 
 class CostVolumeBuilder(nn.Module):
-    def __init__(self, base_size: int = 16):
+    def __init__(self, base_size: int = 8):
         super().__init__()
         self.features = FixedFeaturePyramid()
         self.base_size = base_size

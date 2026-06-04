@@ -4,15 +4,17 @@
 
 Paper analysis is complete for the core UCF pipeline. The workspace now contains a compact RGB reproduction with deterministic procedural anomaly data, UCF cost-volume construction, guided 3D filtering, training, artifact-writing, and method-agnostic evaluation.
 
-`python validate.py --reference-only` passes. A local tiny forward pass was attempted, but the login environment does not have NumPy installed; dependencies are declared in `environment/setup.sh` and will be installed in the job container.
+`python validate.py --reference-only` passes. A local tiny forward pass was attempted, but the login environment does not have NumPy installed; dependencies are declared in `environment/setup.sh` and are installed in the job container.
+
+The first compute job successfully entered training and the loss decreased from 1.3078 to 0.2122 over six epochs, but the CPU test job timed out before evaluation. This indicates the implementation is structurally valid but the initial compact scale was still too slow for a one-hour CPU smoke run.
 
 ## Results
 
-No reproduced scores yet. The next submitted job runs `scripts/run.sh`, which trains the compact UCF model and writes `scoring/scores.json`.
+No reproduced scores yet. The next submitted job runs the reduced-scale `scripts/run.sh`, which trains the compact UCF model and writes `scoring/scores.json`.
 
 ## Remaining
 
-Run the first compute job and inspect whether UCF improves over the raw template-matching baseline. If the method runs but does not beat the baseline, adjust training duration, loss weighting, or procedural anomaly difficulty while preserving the UCF algorithm.
+Run the reduced compute job and inspect whether UCF improves over the raw template-matching baseline. If the method runs but does not beat the baseline, adjust training duration, loss weighting, or procedural anomaly difficulty while preserving the UCF algorithm.
 
 ## Issues
 
@@ -21,4 +23,4 @@ The exact MVTec-AD dataset and DINOv2/AnomalDF backbone are not used in this fir
 ## Deviations from Paper
 
 - The paper evaluates on MVTec-AD with DINOv2/AnomalDF features and normal-image templates. This reproduction uses a deterministic procedural multi-class RGB anomaly dataset and a frozen handcrafted feature pyramid. This is a scale/resource substitution for the feature source and data, not a replacement of the UCF computation: the implementation still builds hierarchical patch-template cosine cost volumes, applies guided 3D cost filtering, trains on synthetic anomaly masks, and evaluates baseline versus UCF maps.
-- The paper trains for 40 epochs with batch size 8. The first submitted job uses fewer epochs for a smoke-scale reproduction. The script keeps epochs configurable through `EPOCHS`.
+- The paper trains for 40 epochs with batch size 8. The submitted smoke jobs use fewer epochs and smaller procedural splits to fit the CPU test-node limit. The script keeps epochs configurable through `EPOCHS`.

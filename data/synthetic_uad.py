@@ -18,10 +18,10 @@ from torch.utils.data import Dataset
 
 @dataclass(frozen=True)
 class SyntheticConfig:
-    image_size: int = 64
-    train_per_class: int = 96
-    test_normal_per_class: int = 24
-    test_anomaly_per_class: int = 48
+    image_size: int = 48
+    train_per_class: int = 36
+    test_normal_per_class: int = 10
+    test_anomaly_per_class: int = 18
     template_count: int = 2
     categories: tuple[str, ...] = ("stripes", "rings", "grid")
 
