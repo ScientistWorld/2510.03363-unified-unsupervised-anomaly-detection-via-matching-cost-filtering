@@ -28,4 +28,4 @@
 - The compact reproduction remains at `core_claim`; broader MVTec/DINOv2 coverage is left as future work.
 
 ## Stop Justification
-- Stopped at `core_claim`. The actual UCF computation is implemented, the reduced benchmark runs end-to-end, scores validate, and further progress would require a larger dataset/backbone reproduction outside the compact CPU-tested setup.
+- Completed at milestone `core_claim`.
