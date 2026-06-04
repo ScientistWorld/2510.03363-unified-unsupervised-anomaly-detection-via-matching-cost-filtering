@@ -10,4 +10,4 @@
 - UCF improved pixel AUROC from 71.114 to 74.942 over the direct matching-cost baseline on the procedural multi-class RGB anomaly benchmark, with 0.16M additional parameters.
 
 ## Stop Justification
-- Completed at milestone `core_claim` for the reduced RGB UAD benchmark.
+- Completed at milestone `core_claim`.
