@@ -1,5 +1,5 @@
-action: done
+action: submit
 gpus: 0
 test: false
 milestone: core_claim_plus
-notes: "Final verification passed: method-agnostic docs, scoring schema, train/test evaluators, and packaging checks are ready for compact gym use."
+notes: "Final verifier found stale score artifacts after evaluator tightening; rerun CPU method/eval pipeline to regenerate current-code scores and validate."

@@ -26,6 +26,8 @@ Final verification on 2026-06-06 kept the milestone at `core_claim_plus` and tig
 
 The 2026-06-06 audit pass found a UCF fidelity issue: the compact implementation flattened matching positions and feature layers into one 3D depth axis, while the paper uses matching/template positions as channels and feature layers as the 3D depth. The method has been patched to preserve a `[batch, matching_channels, feature_layers, height, width]` cost-volume layout, and `scripts/run.sh` now regenerates the canonical artifact before validation. A compute job is being submitted to re-train and re-score this corrected implementation.
 
+Final verification found that the current prediction artifact was produced before the corrected metadata writer and expanded metric schema. The evaluator now rejects submitted artifacts that omit `added_params_M` or `added_flops_G`, and train/test wrappers discover all conforming `outputs/*/predictions.npz` artifacts by default. A CPU revalidation job is being submitted to regenerate `outputs/ucf_synthetic`, `scoring/scores.json`, `scoring/scores_train.json`, and `scoring/scores_test.json` from the current code.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
@@ -46,6 +48,8 @@ The exact MVTec-AD dataset and DINOv2/AnomalDF backbone are not used in this fir
 The bare login Python still lacks NumPy, so `scripts/evaluate.sh` cannot run outside the configured container. This is not a packaging failure: `environment/setup.sh` installs NumPy and scikit-learn, and completed compute jobs have run the evaluator and `validate.py --compare` successfully inside the container.
 
 The current `scoring/scores.json` was produced by the previous compact UCF tensor layout. The next submitted job regenerates it after the corrected cost-volume layout and expanded metrics (`image_f1_max`, AP/F1/AUPRO diagnostics, added FLOPs) are in place.
+
+The current generated `outputs/ucf_synthetic/predictions.npz` metadata is stale and does not include the required added-FLOP constraint. This is intentionally treated as invalid by the stricter evaluator; the next CPU job rebuilds the artifact from the patched method.
 
 The 2026-06-06 `af7cf417-13b` job exited with code 1 because the validator rejected an extra `rgb_synthetic_seed13` experiment in `scores.json`. The experiment outputs were valid; the packaging contract is fixed by storing extra-seed metrics in `scoring/robustness_scores.json` and leaving canonical `scores.json` aligned with `reference.json`.
 

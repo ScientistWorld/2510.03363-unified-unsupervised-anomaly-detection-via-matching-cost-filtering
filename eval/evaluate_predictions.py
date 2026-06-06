@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 
@@ -45,7 +46,7 @@ def summarize(
     }
 
 
-def load_metadata_value(prediction_path: Path, data: np.lib.npyio.NpzFile, keys: tuple[str, ...], default: float) -> float:
+def load_metadata_value(prediction_path: Path, data: np.lib.npyio.NpzFile, keys: tuple[str, ...]) -> Optional[float]:
     for key in keys:
         if key in data.files:
             return float(np.asarray(data[key]).reshape(-1)[0])
@@ -55,7 +56,7 @@ def load_metadata_value(prediction_path: Path, data: np.lib.npyio.NpzFile, keys:
         for key in keys:
             if key in metadata:
                 return float(metadata[key])
-    return default
+    return None
 
 
 def main() -> None:
@@ -65,7 +66,7 @@ def main() -> None:
         type=Path,
         nargs="+",
         default=[Path("outputs/ucf_synthetic/predictions.npz")],
-        help="One or more prediction artifacts written by method.train_ucf.",
+        help="One or more prediction artifacts written by a submitted method.",
     )
     parser.add_argument(
         "--experiment-names",
@@ -93,8 +94,12 @@ def main() -> None:
             else:
                 name = f"rgb_synthetic_seed{idx + 1}"
         data = np.load(pred_path)
-        params_m = load_metadata_value(pred_path, data, ("params_m", "added_params_M", "method_params_M", "ucf_params_M"), 0.16)
-        flops_g = load_metadata_value(pred_path, data, ("flops_g", "added_flops_G", "method_flops_G", "ucf_flops_G"), 0.0)
+        params_m = load_metadata_value(pred_path, data, ("params_m", "added_params_M", "method_params_M", "ucf_params_M"))
+        flops_g = load_metadata_value(pred_path, data, ("flops_g", "added_flops_G", "method_flops_G", "ucf_flops_G"))
+        if params_m is None or flops_g is None:
+            raise ValueError(
+                f"{pred_path} must include added_params_M and added_flops_G in the .npz artifact or metadata.json"
+            )
         labels = data["labels"]
         categories = data["categories"]
         masks = data["masks"]

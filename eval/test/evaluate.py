@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 
@@ -84,7 +85,7 @@ def category_mean_metric(
     return float(np.mean(values)) if values else float("nan")
 
 
-def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
+def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> Optional[float]:
     for key in ("params_m", "added_params_M", "method_params_M", "ucf_params_M"):
         if key in data.files:
             return float(np.asarray(data[key]).reshape(-1)[0])
@@ -94,10 +95,10 @@ def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
         for key in ("params_m", "added_params_M", "method_params_M", "ucf_params_M"):
             if key in metadata:
                 return float(metadata[key])
-    return 0.16
+    return None
 
 
-def load_flops_g(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
+def load_flops_g(prediction_path: Path, data: np.lib.npyio.NpzFile) -> Optional[float]:
     for key in ("flops_g", "added_flops_G", "method_flops_G", "ucf_flops_G"):
         if key in data.files:
             return float(np.asarray(data[key]).reshape(-1)[0])
@@ -107,7 +108,7 @@ def load_flops_g(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
         for key in ("flops_g", "added_flops_G", "method_flops_G", "ucf_flops_G"):
             if key in metadata:
                 return float(metadata[key])
-    return 0.0
+    return None
 
 
 def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
@@ -169,14 +170,20 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
             )
 
         method_name = unique_name(method_base, used_names, prediction_path)
+        params_m = load_params_m(prediction_path, data)
+        flops_g = load_flops_g(prediction_path, data)
+        if params_m is None or flops_g is None:
+            raise ValueError(
+                f"{prediction_path} must include added_params_M and added_flops_G in the .npz artifact or metadata.json"
+            )
         results[method_name] = summarize(
             categories[keep],
             labels[keep],
             masks[keep],
             data["fused_scores"][keep],
             data["fused_maps"][keep],
-            load_params_m(prediction_path, data),
-            load_flops_g(prediction_path, data),
+            params_m,
+            flops_g,
         )
         included_count += 1
 
