@@ -1,9 +1,4 @@
-# This iteration writes files only — do NOT submit compute jobs.
-# Once you set action to 'done', STOP immediately.
-# Do NOT sleep, poll, or wait. The system reads this file
-# only after your turn ends.
-action: done
+action: submit
 gpus: 0
 test: false
-milestone: core_claim_plus
-notes: "Improvements: standalone hidden test evaluation; added pixel AP, strict AUPRO, and category-balanced AUROC metrics; completed metric descriptions; conservative parameter default. Notes: see DESIGN_NOTES.md."
+notes: "Run split train/test scoring against existing final prediction artifacts; populate scoring/scores_train.json and scoring/scores_test.json."
