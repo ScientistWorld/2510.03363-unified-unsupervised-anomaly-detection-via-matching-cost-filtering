@@ -1,5 +1,3 @@
-action: submit
-gpus: 0
-test: false
+action: done
 milestone: core_claim_plus
-notes: "Final verifier found stale score artifacts after evaluator tightening; rerun CPU method/eval pipeline to regenerate current-code scores and validate."
+notes: "Final verification passed after current-code CPU revalidation; compact UCF gym is ready at core_claim_plus."

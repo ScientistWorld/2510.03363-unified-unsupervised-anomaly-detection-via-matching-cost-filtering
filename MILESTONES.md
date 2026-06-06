@@ -37,5 +37,10 @@
 - Final verification tightened evaluator reuse and constraint scoring: train/test wrappers now enumerate prediction artifacts by default, and evaluators require `added_params_M` plus `added_flops_G` instead of assigning zero overhead to incomplete artifacts.
 - The existing generated prediction artifact is stale relative to the current method metadata writer, so final sign-off is deferred until a CPU revalidation job regenerates scores from the current code.
 
+### [2026-06-06 23:35] - core_claim_plus
+- CPU job `4c0da269-693` completed with exit code 0, regenerated current-code prediction artifacts and all score files, and passed `python validate.py --compare`.
+- Corrected-layout UCF improved the primary pixel AUROC from 70.7 to 74.9 and improved pixel AP, pixel F1, AUPRO, and category-mean pixel AUROC, with measured compact overhead of 0.224M parameters and 0.064G FLOPs.
+- Image-level AUROC/AP did not improve on the compact procedural split, so the final milestone remains `core_claim_plus`.
+
 ## Stop Justification
-- Completed at milestone `core_claim_plus`.
+- Completed final verification at milestone `core_claim_plus`. The compact gym is usable and validated, but it intentionally covers a reduced RGB procedural setting rather than the full MVTec/DINOv2-AnomalDF evaluation suite.
