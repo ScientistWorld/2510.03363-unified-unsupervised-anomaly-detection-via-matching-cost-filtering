@@ -14,6 +14,47 @@ from data.synthetic_uad import SyntheticConfig, SyntheticUADDataset, iter_datase
 from method.ucf_model import CostVolumeBuilder, UCFNet, baseline_map
 
 
+def trainable_params_m(model: nn.Module) -> float:
+    return sum(p.numel() for p in model.parameters() if p.requires_grad) / 1_000_000.0
+
+
+def estimate_added_flops_g(model: UCFNet, builder: CostVolumeBuilder, image_size: int, feature_channels: int = 15) -> float:
+    flops = 0
+    hooks = []
+    was_training = model.training
+    device = next(model.parameters()).device
+
+    def conv_hook(module: nn.Module, _inputs: tuple[torch.Tensor, ...], output: torch.Tensor) -> None:
+        nonlocal flops
+        kernel_ops = int(np.prod(module.kernel_size)) * (module.in_channels // module.groups)
+        flops += int(output.numel()) * kernel_ops * 2
+
+    def linear_hook(module: nn.Linear, _inputs: tuple[torch.Tensor, ...], output: torch.Tensor) -> None:
+        nonlocal flops
+        flops += int(output.numel()) * module.in_features * 2
+
+    for module in model.modules():
+        if isinstance(module, (nn.Conv2d, nn.Conv3d)):
+            hooks.append(module.register_forward_hook(conv_hook))
+        elif isinstance(module, nn.Linear):
+            hooks.append(module.register_forward_hook(linear_hook))
+
+    model.eval()
+    with torch.no_grad():
+        volume = torch.zeros(1, builder.match_channels, 3, builder.base_size, builder.base_size, device=device)
+        image = torch.zeros(1, 3, image_size, image_size, device=device)
+        initial = torch.zeros(1, 1, builder.base_size, builder.base_size, device=device)
+        model(volume, image, initial)
+
+    for hook in hooks:
+        hook.remove()
+    model.train(was_training)
+
+    for size in (max(6, image_size // 4), max(4, image_size // 8), max(3, image_size // 16)):
+        flops += builder.template_count * feature_channels * (size * size) * (size * size) * 2
+    return flops / 1_000_000_000.0
+
+
 def focal_loss(logits: torch.Tensor, target: torch.Tensor, gamma: torch.Tensor) -> torch.Tensor:
     ce = F.cross_entropy(logits, target, reduction="none")
     pt = torch.exp(-ce)
@@ -73,7 +114,16 @@ def run_epoch(model: UCFNet, builder: CostVolumeBuilder, loader: DataLoader, opt
 
 
 @torch.no_grad()
-def predict(model: UCFNet, builder: CostVolumeBuilder, loader: DataLoader, device: torch.device, out_dir: Path, lam: float) -> None:
+def predict(
+    model: UCFNet,
+    builder: CostVolumeBuilder,
+    loader: DataLoader,
+    device: torch.device,
+    out_dir: Path,
+    lam: float,
+    added_params_m: float,
+    added_flops_g: float,
+) -> None:
     model.eval()
     labels, categories, indices = [], [], []
     masks, ucf_maps, base_maps, fused_maps = [], [], [], []
@@ -109,9 +159,21 @@ def predict(model: UCFNet, builder: CostVolumeBuilder, loader: DataLoader, devic
         ucf_scores=np.concatenate(ucf_scores),
         baseline_scores=np.concatenate(base_scores),
         fused_scores=np.concatenate(fused_scores),
+        added_params_M=np.asarray([added_params_m], dtype=np.float32),
+        added_flops_G=np.asarray([added_flops_g], dtype=np.float32),
     )
     (out_dir / "metadata.json").write_text(
-        json.dumps({"dataset": list(iter_dataset_summary()), "lambda": lam, "topk": 250, "added_params_M": 0.16}, indent=2)
+        json.dumps(
+            {
+                "dataset": list(iter_dataset_summary()),
+                "lambda": lam,
+                "topk": 250,
+                "added_params_M": added_params_m,
+                "added_flops_G": added_flops_g,
+                "cost_volume_layout": "batch,matching_channels,feature_layers,height,width",
+            },
+            indent=2,
+        )
     )
 
 
@@ -135,8 +197,10 @@ def main() -> None:
     test_ds = SyntheticUADDataset("test", cfg)
     train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=0)
     test_loader = DataLoader(test_ds, batch_size=args.batch_size, shuffle=False, num_workers=0)
-    builder = CostVolumeBuilder().to(device)
-    model = UCFNet(categories=len(cfg.categories)).to(device)
+    builder = CostVolumeBuilder(template_count=cfg.template_count).to(device)
+    model = UCFNet(categories=len(cfg.categories), match_channels=builder.match_channels).to(device)
+    added_params_m = trainable_params_m(model)
+    added_flops_g = estimate_added_flops_g(model, builder, cfg.image_size)
     opt = torch.optim.Adam(model.parameters(), lr=args.lr)
     sched = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, factor=0.5, patience=3)
 
@@ -151,7 +215,7 @@ def main() -> None:
         print(f"epoch={epoch} loss={loss:.4f} lr={opt.param_groups[0]['lr']:.2e}", flush=True)
     state = torch.load(args.checkpoint, map_location=device)
     model.load_state_dict(state["model"])
-    predict(model, builder, test_loader, device, args.output, args.lambda_fusion)
+    predict(model, builder, test_loader, device, args.output, args.lambda_fusion, added_params_m, added_flops_g)
 
 
 if __name__ == "__main__":

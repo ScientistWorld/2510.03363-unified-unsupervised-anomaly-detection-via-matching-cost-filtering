@@ -3,12 +3,8 @@ set -euo pipefail
 
 cd /home/user
 
-if [ ! -f outputs/ucf_synthetic/predictions.npz ]; then
-  echo "Missing outputs/ucf_synthetic/predictions.npz; run scripts/method.sh or scripts/reproduce.sh first." >&2
-  exit 1
-fi
-
-bash scripts/evaluate.sh outputs/ucf_synthetic/predictions.npz
-bash scripts/evaluate_train.sh
-bash scripts/evaluate_test.sh
+rm -rf outputs/ucf_synthetic checkpoints/ucf_synthetic.pt
+bash scripts/method.sh
+bash scripts/evaluate_train.sh outputs/ucf_synthetic/predictions.npz
+bash scripts/evaluate_test.sh outputs/ucf_synthetic/predictions.npz
 python validate.py --compare

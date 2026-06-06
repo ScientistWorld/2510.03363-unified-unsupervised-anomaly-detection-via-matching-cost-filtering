@@ -5,3 +5,5 @@ Future improvements must use the same procedural dataset split, image size, cate
 The feature source, number of reference examples per image, image resolution, procedural data generator, and train/test split must remain fixed unless the experiment name is changed. Improvements should come from better anomaly scoring, calibration, model design, or training strategy rather than larger backbones, more references, higher image resolution, extra data, or test-time access to labels.
 
 Submitted methods must write the same prediction artifact fields consumed by `scripts/evaluate.sh`: image labels, pixel masks, image scores, and anomaly maps for the baseline and proposed method names declared in `scoring/reference.json`.
+
+Methods must report added trainable parameters and per-image analytical FLOPs in the prediction artifact or sibling metadata. Wall-clock inference time and GPU memory are not canonical scores because they vary across hardware, but future methods should not use unbounded compute to compensate for weak anomaly scoring.

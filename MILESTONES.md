@@ -28,5 +28,10 @@
 - Final verification passed after tightening method-agnostic documentation, generic scoring metric names, and train/test evaluation support for future method variants.
 - `python validate.py --compare` and Python compilation checks passed.
 
+### [2026-06-06 22:46] - core_claim_plus
+- Audit-driven fidelity patch prepared: UCF cost volumes now preserve matching positions as channels and feature layers as 3D depth, closer to the paper's filtering input.
+- Updated scoring constraints to include paper-correct `+43.8M` AnomalDF UCF parameters and `+32.7G` FLOPs, added image F1, and made `scripts/run.sh` regenerate canonical outputs before validation.
+- Submitting a compute job to re-train and re-score the corrected compact implementation before finalizing this state.
+
 ## Stop Justification
 - Completed at milestone `core_claim_plus`.

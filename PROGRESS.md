@@ -24,6 +24,8 @@ The 2026-06-06 packaging audit tightened two issues before final handoff: `scrip
 
 Final verification on 2026-06-06 kept the milestone at `core_claim_plus` and tightened gym usability: from-scratch-visible docs were made method-agnostic, the parameter constraint was renamed to `added_params_M`, train/test evaluators now score any conforming prediction artifact, and compact train/test parameter scores were corrected to 0.16M.
 
+The 2026-06-06 audit pass found a UCF fidelity issue: the compact implementation flattened matching positions and feature layers into one 3D depth axis, while the paper uses matching/template positions as channels and feature layers as the 3D depth. The method has been patched to preserve a `[batch, matching_channels, feature_layers, height, width]` cost-volume layout, and `scripts/run.sh` now regenerates the canonical artifact before validation. A compute job is being submitted to re-train and re-score this corrected implementation.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
@@ -42,6 +44,8 @@ To go beyond `core_claim_plus`, the next meaningful step would be replacing the 
 The exact MVTec-AD dataset and DINOv2/AnomalDF backbone are not used in this first pass to avoid large downloads and GPU-heavy feature extraction. The reproduction instead targets the UCF algorithm itself in a compact RGB setting.
 
 The bare login Python still lacks NumPy, so `scripts/evaluate.sh` cannot run outside the configured container. This is not a packaging failure: `environment/setup.sh` installs NumPy and scikit-learn, and completed compute jobs have run the evaluator and `validate.py --compare` successfully inside the container.
+
+The current `scoring/scores.json` was produced by the previous compact UCF tensor layout. The next submitted job regenerates it after the corrected cost-volume layout and expanded metrics (`image_f1_max`, AP/F1/AUPRO diagnostics, added FLOPs) are in place.
 
 The 2026-06-06 `af7cf417-13b` job exited with code 1 because the validator rejected an extra `rgb_synthetic_seed13` experiment in `scores.json`. The experiment outputs were valid; the packaging contract is fixed by storing extra-seed metrics in `scoring/robustness_scores.json` and leaving canonical `scores.json` aligned with `reference.json`.
 

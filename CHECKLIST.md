@@ -18,7 +18,7 @@
 ## Code
 - [x] Evaluation code in `eval/`
 - [x] Method implementation in `method/`
-- [x] Baseline output path implemented through the shared cost-volume artifact
+- [x] Baseline raw cost-volume artifact generator implemented
 
 ## Scripts
 - [x] `scripts/evaluate.sh`

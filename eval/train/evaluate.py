@@ -50,12 +50,15 @@ def summarize(
     image_scores: np.ndarray,
     maps: np.ndarray,
     params_m: float,
+    flops_g: float,
 ) -> dict[str, float]:
     return {
         "image_auroc": auroc(labels, image_scores),
         "pixel_auroc": auroc(masks, maps),
         "added_params_M": float(params_m),
+        "added_flops_G": float(flops_g),
         "image_ap": ap(labels, image_scores),
+        "image_f1_max": f1_max(labels, image_scores),
         "pixel_ap": ap(masks, maps),
         "pixel_f1_max": f1_max(masks, maps),
         "pixel_aupro": aupro(masks, maps),
@@ -92,6 +95,19 @@ def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
             if key in metadata:
                 return float(metadata[key])
     return 0.16
+
+
+def load_flops_g(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
+    for key in ("flops_g", "added_flops_G", "method_flops_G", "ucf_flops_G"):
+        if key in data.files:
+            return float(np.asarray(data[key]).reshape(-1)[0])
+    metadata_path = prediction_path.parent / "metadata.json"
+    if metadata_path.exists():
+        metadata = json.loads(metadata_path.read_text())
+        for key in ("flops_g", "added_flops_G", "method_flops_G", "ucf_flops_G"):
+            if key in metadata:
+                return float(metadata[key])
+    return 0.0
 
 
 def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
@@ -149,6 +165,7 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
                 data["baseline_scores"][keep],
                 data["baseline_maps"][keep],
                 0.0,
+                0.0,
             )
 
         method_name = unique_name(method_base, used_names, prediction_path)
@@ -159,6 +176,7 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
             data["fused_scores"][keep],
             data["fused_maps"][keep],
             load_params_m(prediction_path, data),
+            load_flops_g(prediction_path, data),
         )
         included_count += 1
 

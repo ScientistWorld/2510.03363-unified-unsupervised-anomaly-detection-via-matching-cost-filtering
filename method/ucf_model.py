@@ -39,20 +39,34 @@ class FixedFeaturePyramid(nn.Module):
         return feats
 
 
-def _cosine_cost(query: torch.Tensor, templates: torch.Tensor) -> torch.Tensor:
+def _cosine_cost_grid(query: torch.Tensor, templates: torch.Tensor) -> torch.Tensor:
     b, c, h, w = query.shape
     _, k, _, ht, wt = templates.shape
     q = F.normalize(query, dim=1)
-    t = F.normalize(templates.reshape(b, k, c, ht * wt), dim=2)
-    sim = torch.einsum("bchw,bkcm->bkmhw", q, t).reshape(b, k * ht * wt, h, w)
+    t = F.normalize(templates, dim=2)
+    sim = torch.einsum("bchw,bkcuv->bkuvhw", q, t)
     return 1.0 - sim
 
 
 class CostVolumeBuilder(nn.Module):
-    def __init__(self, base_size: int = 8):
+    def __init__(self, base_size: int = 8, template_count: int = 2):
         super().__init__()
         self.features = FixedFeaturePyramid()
         self.base_size = base_size
+        self.template_count = template_count
+        self.match_channels = template_count * base_size * base_size
+
+    def _resample_cost(self, cost: torch.Tensor) -> torch.Tensor:
+        b, k, ht, wt, h, w = cost.shape
+        size = self.base_size
+        cost = cost.reshape(b * k * ht * wt, 1, h, w)
+        cost = F.interpolate(cost, size=(size, size), mode="bilinear", align_corners=False)
+        cost = cost.reshape(b, k, ht, wt, size, size)
+        cost = cost.permute(0, 1, 4, 5, 2, 3).reshape(b * k * size * size, 1, ht, wt)
+        cost = F.interpolate(cost, size=(size, size), mode="bilinear", align_corners=False)
+        cost = cost.reshape(b, k, size, size, size, size)
+        cost = cost.permute(0, 1, 4, 5, 2, 3).reshape(b, k * size * size, size, size)
+        return cost
 
     @torch.no_grad()
     def forward(self, image: torch.Tensor, templates: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, list[torch.Tensor]]:
@@ -63,11 +77,10 @@ class CostVolumeBuilder(nn.Module):
         for q, tf in zip(image_feats, template_feats_flat):
             _, cf, ht, wt = tf.shape
             t = tf.reshape(b, k, cf, ht, wt)
-            cost = _cosine_cost(q, t)
-            cost = F.interpolate(cost, size=(self.base_size, self.base_size), mode="bilinear", align_corners=False)
+            cost = self._resample_cost(_cosine_cost_grid(q, t))
             cost_layers.append(cost)
-        volume = torch.cat(cost_layers, dim=1)
-        initial = volume.min(dim=1, keepdim=True).values
+        volume = torch.stack(cost_layers, dim=2)
+        initial = volume.min(dim=1).values.mean(dim=1, keepdim=True)
         return volume, initial, image_feats
 
 
@@ -95,7 +108,7 @@ class RCSA3D(nn.Module):
 class UCFNet(nn.Module):
     """Compact UCF: 3D cost-volume filtering with dual image/map guidance."""
 
-    def __init__(self, categories: int = 3, guide_channels: int = 16):
+    def __init__(self, categories: int = 3, guide_channels: int = 16, match_channels: int = 128):
         super().__init__()
         self.guide = nn.Sequential(
             nn.Conv2d(4, guide_channels, 3, padding=1),
@@ -103,7 +116,7 @@ class UCFNet(nn.Module):
             nn.Conv2d(guide_channels, guide_channels, 3, padding=1),
             nn.ReLU(inplace=True),
         )
-        self.enc1 = nn.Sequential(nn.Conv3d(1 + guide_channels, 16, 3, padding=1), nn.ReLU(inplace=True), RCSA3D(16))
+        self.enc1 = nn.Sequential(nn.Conv3d(match_channels + guide_channels, 16, 3, padding=1), nn.ReLU(inplace=True), RCSA3D(16))
         self.enc2 = nn.Sequential(nn.Conv3d(16, 32, 3, stride=(2, 1, 1), padding=1), nn.ReLU(inplace=True), RCSA3D(32))
         self.enc3 = nn.Sequential(nn.Conv3d(32, 48, 3, stride=(2, 1, 1), padding=1), nn.ReLU(inplace=True), RCSA3D(48))
         self.dec2 = nn.Sequential(nn.Conv3d(48 + 32, 32, 3, padding=1), nn.ReLU(inplace=True), RCSA3D(32))
@@ -112,11 +125,11 @@ class UCFNet(nn.Module):
         self.classifier = nn.Linear(48, categories)
 
     def forward(self, volume: torch.Tensor, image: torch.Tensor, initial: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        b, d, h, w = volume.shape
+        b, _, layers, h, w = volume.shape
         img = F.interpolate(image, size=(h, w), mode="bilinear", align_corners=False)
         guide2d = self.guide(torch.cat([img, initial], dim=1))
-        guide3d = guide2d[:, :, None].expand(-1, -1, d, -1, -1)
-        x0 = torch.cat([volume[:, None], guide3d], dim=1)
+        guide3d = guide2d[:, :, None].expand(-1, -1, layers, -1, -1)
+        x0 = torch.cat([volume, guide3d], dim=1)
         e1 = self.enc1(x0)
         e2 = self.enc2(e1)
         e3 = self.enc3(e2)
@@ -132,7 +145,10 @@ class UCFNet(nn.Module):
 
 
 def baseline_map(volume: torch.Tensor, out_size: tuple[int, int]) -> torch.Tensor:
-    score = volume.min(dim=1, keepdim=True).values
+    if volume.ndim == 5:
+        score = volume.min(dim=1).values.mean(dim=1, keepdim=True)
+    else:
+        score = volume.min(dim=1, keepdim=True).values
     score = F.interpolate(score, size=out_size, mode="bilinear", align_corners=False)
     lo = score.amin(dim=(2, 3), keepdim=True)
     hi = score.amax(dim=(2, 3), keepdim=True)

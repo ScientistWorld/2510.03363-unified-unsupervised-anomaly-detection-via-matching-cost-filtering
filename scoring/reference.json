@@ -20,10 +20,20 @@
           "coefficient": -0.15,
           "description": "Added trainable parameter count penalizes methods that buy accuracy with a much larger filtering module."
         },
+        "added_flops_G": {
+          "higher_is_better": false,
+          "coefficient": -0.2,
+          "description": "Added per-image computational cost in GFLOPs penalizes methods that buy accuracy with much heavier filtering."
+        },
         "image_ap": {
           "higher_is_better": true,
           "coefficient": 0.35,
           "description": "Image-level average precision rewards ranking anomalous images above normal images under class imbalance."
+        },
+        "image_f1_max": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "Best image-level F1 over thresholds checks whether detection scores can support a usable operating point."
         },
         "pixel_ap": {
           "higher_is_better": true,
@@ -61,13 +71,15 @@
           "type": "baseline",
           "image_auroc": 96.8,
           "pixel_auroc": 98.1,
-          "added_params_M": 0.0
+          "added_params_M": 0.0,
+          "added_flops_G": 0.0
         },
         "anomaldf_ucf": {
           "type": "proposed",
           "image_auroc": 98.5,
           "pixel_auroc": 98.8,
-          "added_params_M": 43.0
+          "added_params_M": 43.8,
+          "added_flops_G": 32.7
         }
       }
     }

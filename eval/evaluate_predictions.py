@@ -26,12 +26,14 @@ def summarize(
     image_scores: np.ndarray,
     maps: np.ndarray,
     params_m: float,
+    flops_g: float,
 ) -> dict[str, float]:
     category_image, category_pixel = _category_mean_auroc(categories, labels, masks, image_scores, maps)
     return {
         "image_auroc": auroc(labels, image_scores),
         "pixel_auroc": auroc(masks, maps),
         "image_ap": ap(labels, image_scores),
+        "image_f1_max": f1_max(labels, image_scores),
         "pixel_ap": ap(masks, maps),
         "pixel_f1_max": f1_max(masks, maps),
         "pixel_aupro": aupro(masks, maps),
@@ -39,7 +41,21 @@ def summarize(
         "category_mean_image_auroc": category_image,
         "category_mean_pixel_auroc": category_pixel,
         "added_params_M": float(params_m),
+        "added_flops_G": float(flops_g),
     }
+
+
+def load_metadata_value(prediction_path: Path, data: np.lib.npyio.NpzFile, keys: tuple[str, ...], default: float) -> float:
+    for key in keys:
+        if key in data.files:
+            return float(np.asarray(data[key]).reshape(-1)[0])
+    metadata_path = prediction_path.parent / "metadata.json"
+    if metadata_path.exists():
+        metadata = json.loads(metadata_path.read_text())
+        for key in keys:
+            if key in metadata:
+                return float(metadata[key])
+    return default
 
 
 def main() -> None:
@@ -77,13 +93,15 @@ def main() -> None:
             else:
                 name = f"rgb_synthetic_seed{idx + 1}"
         data = np.load(pred_path)
+        params_m = load_metadata_value(pred_path, data, ("params_m", "added_params_M", "method_params_M", "ucf_params_M"), 0.16)
+        flops_g = load_metadata_value(pred_path, data, ("flops_g", "added_flops_G", "method_flops_G", "ucf_flops_G"), 0.0)
         labels = data["labels"]
         categories = data["categories"]
         masks = data["masks"]
         experiments[name] = {
                 "results": {
-                    "anomaldf": summarize(labels, categories, masks, data["baseline_scores"], data["baseline_maps"], 0.0),
-                    "anomaldf_ucf": summarize(labels, categories, masks, data["fused_scores"], data["fused_maps"], 0.16),
+                    "anomaldf": summarize(labels, categories, masks, data["baseline_scores"], data["baseline_maps"], 0.0, 0.0),
+                    "anomaldf_ucf": summarize(labels, categories, masks, data["fused_scores"], data["fused_maps"], params_m, flops_g),
                 }
             }
     scores = {"experiments": experiments}
