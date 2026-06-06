@@ -1,4 +1,5 @@
 action: done
 gpus: 0
 test: false
+milestone: core_claim_plus
 notes: "Deterministic stratified 50/50 category-label split; 30 train metrics and 30 test metrics populated; anomaldf_ucf pixel_auroc 77.50 train vs 72.79 test, baseline 73.28 vs 69.37; no nulls, no byte-identical split, low-FPR AUPRO remains low but nonzero."
