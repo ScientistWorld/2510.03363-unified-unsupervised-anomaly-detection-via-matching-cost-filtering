@@ -1,0 +1,62 @@
+{
+  "_slice": "test",
+  "_split": {
+    "artifacts": {
+      "outputs/ucf_synthetic/predictions.npz": {
+        "selected": 42,
+        "slice": "test",
+        "total": 84
+      },
+      "outputs/ucf_synthetic_seed13/predictions.npz": {
+        "selected": 42,
+        "slice": "test",
+        "total": 84
+      }
+    },
+    "seed": 20261003,
+    "style": "deterministic stratified 50/50 over category and anomaly label"
+  },
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_slice": "test",
+      "results": {
+        "anomaldf": {
+          "category_mean_image_auroc": 49.62962962962964,
+          "category_mean_pixel_auroc": 69.68326615143714,
+          "image_ap": 64.3367349320945,
+          "image_auroc": 47.90123456790123,
+          "pixel_ap": 3.344373742073797,
+          "pixel_aupro": 27.44570014516204,
+          "pixel_aupro_5pct": 2.473358271274911,
+          "pixel_auroc": 69.37234644316678,
+          "pixel_f1_max": 7.46462640084339,
+          "ucf_params_M": 0.0
+        },
+        "anomaldf_ucf": {
+          "category_mean_image_auroc": 55.55555555555555,
+          "category_mean_pixel_auroc": 72.9066498195901,
+          "image_ap": 63.96630503447508,
+          "image_auroc": 50.864197530864196,
+          "pixel_ap": 3.738319780859087,
+          "pixel_aupro": 30.435180105518512,
+          "pixel_aupro_5pct": 3.0398903366060877,
+          "pixel_auroc": 72.78546221128848,
+          "pixel_f1_max": 8.031235327550645,
+          "ucf_params_M": 43.0
+        },
+        "ucf_synthetic_seed13": {
+          "category_mean_image_auroc": 52.59259259259259,
+          "category_mean_pixel_auroc": 75.5635115981695,
+          "image_ap": 66.98179434178071,
+          "image_auroc": 50.123456790123456,
+          "pixel_ap": 4.087874202534015,
+          "pixel_aupro": 33.06137271145113,
+          "pixel_aupro_5pct": 3.5023444774080086,
+          "pixel_auroc": 75.37929401719718,
+          "pixel_f1_max": 9.007712674110483,
+          "ucf_params_M": 43.0
+        }
+      }
+    }
+  }
+}
