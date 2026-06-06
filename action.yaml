@@ -5,4 +5,4 @@ action: submit
 gpus: 0
 test: false
 milestone: core_claim
-notes: "Run the packaged compact UCF reproduction on the default seed and an additional deterministic seed13 setting, then evaluate both artifacts toward core_claim_plus."
+notes: "Continuation audit restored core_claim. Submit CPU container run for the packaged default seed plus seed13 evaluation to test whether the compact UCF gain holds on an additional setting."

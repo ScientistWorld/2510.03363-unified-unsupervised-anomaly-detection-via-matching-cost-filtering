@@ -14,6 +14,8 @@ The third compute job completed end-to-end. At the compact synthetic scale, UCF 
 
 The fourth compute job used the final 40-epoch default, matching the paper's epoch count at the compact scale. It completed and validated cleanly. Pixel AUROC remained above the raw matching-cost baseline at 74.9 versus 71.1, while image AUROC improved slightly to 52.5. The 24-epoch run had a marginally better pixel AUROC, but the final packaged default is the paper-aligned 40-epoch schedule.
 
+The 2026-06-06 continuation audit restored `core_claim` after the milestone reset. The method code is identifiable as UCF rather than a surrogate: it builds hierarchical patch-template cosine cost volumes, converts them to anomaly costs, uses min-pooled matching maps as the raw baseline, filters the 3D volume with residual channel/spatial attention and image/map guidance, trains with focal, class, soft-IoU, and SSIM losses, and writes prediction artifacts consumed by an evaluator that does not import `method/`.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
@@ -28,6 +30,8 @@ To go beyond `core_claim`, the next meaningful step would be replacing the compa
 ## Issues
 
 The exact MVTec-AD dataset and DINOv2/AnomalDF backbone are not used in this first pass to avoid large downloads and GPU-heavy feature extraction. The reproduction instead targets the UCF algorithm itself in a compact RGB setting.
+
+The bare login Python still lacks NumPy, so `scripts/evaluate.sh` cannot run outside the configured container. This is not a packaging failure: `environment/setup.sh` installs NumPy and scikit-learn, and completed compute jobs have run the evaluator and `validate.py --compare` successfully inside the container.
 
 ## Deviations from Paper
 
