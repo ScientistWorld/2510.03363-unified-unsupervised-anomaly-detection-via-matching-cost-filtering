@@ -7,7 +7,22 @@
       "metrics": {
         "image_auroc": {"higher_is_better": true, "coefficient": 0.8},
         "pixel_auroc": {"higher_is_better": true, "coefficient": 1.0},
-        "ucf_params_M": {"higher_is_better": false, "coefficient": -0.15}
+        "ucf_params_M": {"higher_is_better": false, "coefficient": -0.15},
+        "image_ap": {
+          "higher_is_better": true,
+          "coefficient": 0.35,
+          "description": "Image-level average precision rewards ranking anomalous images above normal images under class imbalance."
+        },
+        "pixel_f1_max": {
+          "higher_is_better": true,
+          "coefficient": 0.3,
+          "description": "Best pixel-level F1 over thresholds checks whether localization maps can support a usable segmentation threshold."
+        },
+        "pixel_aupro": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "Per-region overlap at low false-positive rates measures anomaly localization quality beyond pixelwise ranking."
+        }
       },
       "results": {
         "anomaldf": {
