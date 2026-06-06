@@ -20,5 +20,9 @@
 - Reran the corrected packaged job `b5f79477-1df` successfully through `validate.py --compare`.
 - Canonical `scores.json` remains valid for the paper-referenced experiment, and the generated robustness sidecar confirms the UCF gain under `SEED=13`: image AUROC 51.7 to 60.0 and pixel AUROC 71.1 to 76.6.
 
+### [2026-06-06 22:32] - core_claim_plus
+- Fixed packaging audit issues: `scripts/reproduce.sh` now executes the method before evaluation, and generated `jobs/`/`trajectory/` artifacts were removed from the git index.
+- Expanded canonical artifact evaluation to report AP, F1, AUPRO, stricter AUPRO, and category-mean AUROC metrics in addition to the primary AUROC metrics.
+
 ## Stop Justification
-- Completed at milestone `core_claim_plus`.
+- Completed at milestone `core_claim_plus`; submitting one CPU validation job for the packaging/evaluator update before final done.

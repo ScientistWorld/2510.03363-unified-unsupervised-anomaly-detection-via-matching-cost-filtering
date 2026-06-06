@@ -20,6 +20,8 @@ The attempted additional-seed run on 2026-06-06 trained both the default split a
 
 The corrected `b5f79477-1df` job completed with exit code 0. It reran the default setting, reran `SEED=13`, wrote robustness metrics separately, restored canonical `scores.json`, and passed `python validate.py --compare`. This reaches `core_claim_plus` for the compact benchmark.
 
+The 2026-06-06 packaging audit tightened two issues before final handoff: `scripts/reproduce.sh` now runs the method from scratch before evaluation, and tracked generated `jobs/` and `trajectory/` artifacts were removed from the git index so ignored run logs do not ship. The canonical evaluator was also extended to emit all diagnostic metrics declared in `reference.json` when run inside the packaged environment.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
@@ -40,6 +42,8 @@ The exact MVTec-AD dataset and DINOv2/AnomalDF backbone are not used in this fir
 The bare login Python still lacks NumPy, so `scripts/evaluate.sh` cannot run outside the configured container. This is not a packaging failure: `environment/setup.sh` installs NumPy and scikit-learn, and completed compute jobs have run the evaluator and `validate.py --compare` successfully inside the container.
 
 The 2026-06-06 `af7cf417-13b` job exited with code 1 because the validator rejected an extra `rgb_synthetic_seed13` experiment in `scores.json`. The experiment outputs were valid; the packaging contract is fixed by storing extra-seed metrics in `scoring/robustness_scores.json` and leaving canonical `scores.json` aligned with `reference.json`.
+
+The login-node dependency gap prevents local regeneration of the newly expanded canonical `scores.json`. A CPU test-node validation job is being submitted to regenerate scores and run `validate.py --compare` inside the container.
 
 ## Deviations from Paper
 

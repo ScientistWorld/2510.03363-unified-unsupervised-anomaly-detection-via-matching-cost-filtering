@@ -9,10 +9,35 @@ import numpy as np
 from eval.metrics import ap, auroc, aupro, f1_max
 
 
-def summarize(labels: np.ndarray, masks: np.ndarray, image_scores: np.ndarray, maps: np.ndarray, params_m: float) -> dict[str, float]:
+def _category_mean_auroc(categories: np.ndarray, labels: np.ndarray, masks: np.ndarray, image_scores: np.ndarray, maps: np.ndarray) -> tuple[float, float]:
+    image_values = []
+    pixel_values = []
+    for category in np.unique(categories):
+        keep = categories == category
+        image_values.append(auroc(labels[keep], image_scores[keep]))
+        pixel_values.append(auroc(masks[keep], maps[keep]))
+    return float(np.nanmean(image_values)), float(np.nanmean(pixel_values))
+
+
+def summarize(
+    labels: np.ndarray,
+    categories: np.ndarray,
+    masks: np.ndarray,
+    image_scores: np.ndarray,
+    maps: np.ndarray,
+    params_m: float,
+) -> dict[str, float]:
+    category_image, category_pixel = _category_mean_auroc(categories, labels, masks, image_scores, maps)
     return {
         "image_auroc": auroc(labels, image_scores),
         "pixel_auroc": auroc(masks, maps),
+        "image_ap": ap(labels, image_scores),
+        "pixel_ap": ap(masks, maps),
+        "pixel_f1_max": f1_max(masks, maps),
+        "pixel_aupro": aupro(masks, maps),
+        "pixel_aupro_5pct": aupro(masks, maps, max_fpr=0.05),
+        "category_mean_image_auroc": category_image,
+        "category_mean_pixel_auroc": category_pixel,
         "ucf_params_M": float(params_m),
     }
 
@@ -53,11 +78,12 @@ def main() -> None:
                 name = f"rgb_synthetic_seed{idx + 1}"
         data = np.load(pred_path)
         labels = data["labels"]
+        categories = data["categories"]
         masks = data["masks"]
         experiments[name] = {
                 "results": {
-                    "anomaldf": summarize(labels, masks, data["baseline_scores"], data["baseline_maps"], 0.0),
-                    "anomaldf_ucf": summarize(labels, masks, data["fused_scores"], data["fused_maps"], 0.16),
+                    "anomaldf": summarize(labels, categories, masks, data["baseline_scores"], data["baseline_maps"], 0.0),
+                    "anomaldf_ucf": summarize(labels, categories, masks, data["fused_scores"], data["fused_maps"], 0.16),
                 }
             }
     scores = {"experiments": experiments}

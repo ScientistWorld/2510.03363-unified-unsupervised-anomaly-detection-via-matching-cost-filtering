@@ -1,5 +1,5 @@
-action: done
+action: submit
 gpus: 0
-test: false
+test: true
 milestone: core_claim_plus
-notes: "Packaging audit passed: synthetic data is tracked/generated, download.sh needs no external fetches, and no shared paths or ignored pre-run artifacts are referenced."
+notes: "CPU validation job: regenerate canonical scores with expanded metrics, run train/test split scoring, and validate packaging after reproduce/run script fixes."
