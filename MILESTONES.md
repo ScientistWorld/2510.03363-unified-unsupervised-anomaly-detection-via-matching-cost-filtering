@@ -29,4 +29,4 @@
 - `python validate.py --compare` and Python compilation checks passed.
 
 ## Stop Justification
-- Completed at milestone `core_claim_plus`; the workspace is ready as a compact synthetic research gym with documented scale limitations.
+- Completed at milestone `core_claim_plus`.

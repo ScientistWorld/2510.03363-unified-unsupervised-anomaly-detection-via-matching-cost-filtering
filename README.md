@@ -29,7 +29,7 @@ Industrial inspection and medical screening often have abundant normal data but 
 
 ## Success Criteria
 
-A successful system separates normal from abnormal test images, localizes defect regions accurately, and does so without changing the upstream normal-template feature source or using real anomaly labels during training.
+A successful system separates normal from abnormal test images, localizes defect regions accurately, and does so without using real anomaly labels during training.
 
 ---
 
@@ -57,11 +57,11 @@ The primary claim is that filtering anomaly cost volumes suppresses matching noi
 
 Image-level AUROC measures whether anomalous images receive higher image scores than normal images. Pixel-level AUROC measures whether anomalous pixels receive higher heatmap scores than normal pixels. Both metrics are reported as percentages, and higher is better.
 
-The constraint metric is added trainable parameter count in millions. Lower is better because the benchmark should reward improved anomaly detection without simply scaling model capacity.
+Additional ranking and localization diagnostics include image/pixel average precision, best pixel F1 over thresholds, per-region overlap at low false-positive rates, and category-mean AUROC. The constraint metric is added trainable parameter count in millions. Lower is better because the benchmark should reward improved anomaly detection without simply scaling model capacity.
 
 ## Baselines and Targets
 
-The paper's selected reference for this compact reproduction is the RGB multi-class AnomalDF comparison on MVTec-AD. The target method is the same baseline with the anomaly-map refinement plug-in added.
+The paper's selected reference for this compact reproduction is an RGB multi-class comparison on MVTec-AD. The reproduced benchmark uses a compact procedural substitute with the same output contract: an image-level anomaly score and a pixel-level anomaly heatmap for each test image.
 
 ## Evaluation Protocol
 
@@ -272,6 +272,40 @@ Training uses normal images only, with synthetic anomalies allowed for learning 
 ### [2026-06-06 22:07] - core_claim_plus
 - Reran the corrected packaged job `b5f79477-1df` successfully through `validate.py --compare`.
 - Canonical `scores.json` remains valid for the paper-referenced experiment, and the generated robustness sidecar confirms the UCF gain under `SEED=13`: image AUROC 51.7 to 60.0 and pixel AUROC 71.1 to 76.6.
+
+</details>
+
+### Iteration 8: gpt-5.5 (verifier)
+- **Milestone**: `core_claim_plus` | **Status**: done
+- **Working time**: 9m | **GPU**: 0.0h
+- **Jobs**: 7 total (4 completed, 3 failed)
+
+<details>
+<summary>Progress Log</summary>
+
+### [2026-06-04 06:29] - core_claim
+- Completed the compact RGB UCF reproduction end-to-end on the compute node.
+- The reproduced UCF run improved pixel AUROC over the raw matching-cost baseline from 71.1 to 74.9 while preserving the same frozen template feature source.
+
+### [2026-06-06 21:37] - core_claim
+- Audited the inherited workspace after milestone reset and restored `core_claim`.
+- Verified the implementation contains the paper's cost-volume construction, guided 3D filtering, class-adaptor loss path, baseline map, and artifact-based evaluator.
+
+### [2026-06-06 21:52] - core_claim
+- Reviewed failed `af7cf417-13b` job. Both default and `SEED=13` UCF runs trained and the extra seed improved pixel AUROC from 71.1 to 76.6, but validation failed because an extra non-reference experiment was written to canonical `scores.json`.
+- Fixed `scripts/run.sh` so robustness scores are written separately and canonical `scores.json` is restored before validation.
+
+### [2026-06-06 22:07] - core_claim_plus
+- Reran the corrected packaged job `b5f79477-1df` successfully through `validate.py --compare`.
+- Canonical `scores.json` remains valid for the paper-referenced experiment, and the generated robustness sidecar confirms the UCF gain under `SEED=13`: image AUROC 51.7 to 60.0 and pixel AUROC 71.1 to 76.6.
+
+### [2026-06-06 22:32] - core_claim_plus
+- Fixed packaging audit issues: `scripts/reproduce.sh` now executes the method before evaluation, and generated `jobs/`/`trajectory/` artifacts were removed from the git index.
+- Expanded canonical artifact evaluation to report AP, F1, AUPRO, stricter AUPRO, and category-mean AUROC metrics in addition to the primary AUROC metrics.
+
+### [2026-06-06 22:37] - core_claim_plus
+- Final verification passed after tightening method-agnostic documentation, generic scoring metric names, and train/test evaluation support for future method variants.
+- `python validate.py --compare` and Python compilation checks passed.
 
 </details>
 
