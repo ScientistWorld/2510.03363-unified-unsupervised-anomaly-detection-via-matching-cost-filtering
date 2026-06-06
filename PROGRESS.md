@@ -18,6 +18,8 @@ The 2026-06-06 continuation audit restored `core_claim` after the milestone rese
 
 The attempted additional-seed run on 2026-06-06 trained both the default split and `SEED=13`. The extra seed also supported the claim, improving image AUROC from 51.7 to 60.0 and pixel AUROC from 71.1 to 76.6. The job failed only at the final validation step because `scoring/scores.json` contained an extra experiment not present in the paper-derived `reference.json`. `scripts/run.sh` now writes combined robustness results to `scoring/robustness_scores.json` and restores canonical `scores.json` to the reference experiment before running `validate.py --compare`.
 
+The corrected `b5f79477-1df` job completed with exit code 0. It reran the default setting, reran `SEED=13`, wrote robustness metrics separately, restored canonical `scores.json`, and passed `python validate.py --compare`. This reaches `core_claim_plus` for the compact benchmark.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
@@ -25,11 +27,11 @@ Successful compact reproduction results are written to `scoring/scores.json`:
 - `anomaldf` baseline: image AUROC 51.7, pixel AUROC 71.1, UCF parameters 0.00M.
 - `anomaldf_ucf`: image AUROC 52.5, pixel AUROC 74.9, UCF parameters 0.16M.
 
-Additional robustness result from the failed validation job, kept outside canonical `scores.json`: with `SEED=13`, UCF improved image AUROC from 51.7 to 60.0 and pixel AUROC from 71.1 to 76.6.
+Additional robustness result, kept outside canonical `scores.json` in generated `scoring/robustness_scores.json`: with `SEED=13`, UCF improved image AUROC from 51.7 to 60.0 and pixel AUROC from 71.1 to 76.6.
 
 ## Remaining
 
-To go beyond `core_claim`, the next meaningful step would be replacing the compact procedural feature source with cached DINOv2/AnomalDF features on MVTec-AD or a closer public industrial anomaly dataset. The current environment is complete and usable for the reduced UCF benchmark.
+To go beyond `core_claim_plus`, the next meaningful step would be replacing the compact procedural feature source with cached DINOv2/AnomalDF features on MVTec-AD or a closer public industrial anomaly dataset. The current environment is complete and usable for the reduced UCF benchmark.
 
 ## Issues
 
