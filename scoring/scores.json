@@ -13,6 +13,20 @@
           "ucf_params_M": 0.16
         }
       }
+    },
+    "rgb_synthetic_seed13": {
+      "results": {
+        "anomaldf": {
+          "image_auroc": 51.72839506172839,
+          "pixel_auroc": 71.1140396907275,
+          "ucf_params_M": 0.0
+        },
+        "anomaldf_ucf": {
+          "image_auroc": 60.0,
+          "pixel_auroc": 76.60387006409877,
+          "ucf_params_M": 0.16
+        }
+      }
     }
   }
 }
