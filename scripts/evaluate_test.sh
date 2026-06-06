@@ -14,5 +14,4 @@ fi
 
 python -m eval.test.evaluate \
   --predictions "$@" \
-  --scores scoring/scores_test.json \
-  --train-scores scoring/scores_train.json
+  --scores scoring/scores_test.json

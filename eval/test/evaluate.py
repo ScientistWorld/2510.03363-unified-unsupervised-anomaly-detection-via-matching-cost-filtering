@@ -44,6 +44,7 @@ def split_mask(categories: np.ndarray, labels: np.ndarray, indices: np.ndarray) 
 
 
 def summarize(
+    categories: np.ndarray,
     labels: np.ndarray,
     masks: np.ndarray,
     image_scores: np.ndarray,
@@ -55,9 +56,29 @@ def summarize(
         "pixel_auroc": auroc(masks, maps),
         "ucf_params_M": float(params_m),
         "image_ap": ap(labels, image_scores),
+        "pixel_ap": ap(masks, maps),
         "pixel_f1_max": f1_max(masks, maps),
         "pixel_aupro": aupro(masks, maps),
+        "pixel_aupro_5pct": aupro(masks, maps, max_fpr=0.05),
+        "category_mean_image_auroc": category_mean_metric(categories, labels, image_scores, auroc),
+        "category_mean_pixel_auroc": category_mean_metric(categories, masks, maps, auroc),
     }
+
+
+def category_mean_metric(
+    categories: np.ndarray,
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    metric,
+) -> float:
+    categories = categories.reshape(-1)
+    values = []
+    for category in np.unique(categories):
+        keep = categories == category
+        value = metric(y_true[keep], y_score[keep])
+        if np.isfinite(value):
+            values.append(value)
+    return float(np.mean(values)) if values else float("nan")
 
 
 def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
@@ -70,7 +91,7 @@ def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
         for key in ("params_m", "ucf_params_M", "method_params_M", "added_params_M"):
             if key in metadata:
                 return float(metadata[key])
-    return 0.16
+    return 43.0
 
 
 def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
@@ -83,19 +104,7 @@ def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
     return name
 
 
-def expected_methods(train_scores_path: Path) -> set[str]:
-    if not train_scores_path.exists():
-        raise FileNotFoundError(
-            f"{train_scores_path} does not exist; run scripts/evaluate_train.sh before scripts/evaluate_test.sh"
-        )
-    data = json.loads(train_scores_path.read_text())
-    experiments = data.get("experiments", {})
-    experiment = experiments.get(EXPERIMENT_NAME, {})
-    results = experiment.get("results", {})
-    return {name for name in results if not name.startswith("_")}
-
-
-def evaluate_predictions(prediction_paths: list[Path], train_scores_path: Path) -> dict:
+def evaluate_predictions(prediction_paths: list[Path]) -> dict:
     if not prediction_paths:
         raise ValueError("at least one prediction artifact is required")
 
@@ -120,8 +129,9 @@ def evaluate_predictions(prediction_paths: list[Path], train_scores_path: Path) 
             raise ValueError(f"{prediction_path} is missing required arrays: {', '.join(missing)}")
 
         labels = data["labels"]
+        categories = data["categories"]
         masks = data["masks"]
-        keep = split_mask(data["categories"], labels, data["indices"])
+        keep = split_mask(categories, labels, data["indices"])
         split_counts[str(prediction_path)] = {
             "slice": SLICE,
             "selected": int(keep.sum()),
@@ -130,6 +140,7 @@ def evaluate_predictions(prediction_paths: list[Path], train_scores_path: Path) 
 
         if artifact_index == 0:
             results["anomaldf"] = summarize(
+                categories[keep],
                 labels[keep],
                 masks[keep],
                 data["baseline_scores"][keep],
@@ -139,23 +150,13 @@ def evaluate_predictions(prediction_paths: list[Path], train_scores_path: Path) 
 
         method_name = unique_name(stable_method_name(prediction_path), used_names, prediction_path)
         results[method_name] = summarize(
+            categories[keep],
             labels[keep],
             masks[keep],
             data["fused_scores"][keep],
             data["fused_maps"][keep],
             load_params_m(prediction_path, data),
         )
-
-    expected = expected_methods(train_scores_path)
-    missing = sorted(expected.difference(results))
-    extra = sorted(set(results).difference(expected))
-    if missing:
-        raise ValueError(
-            "held-out test slice could not score every method from scores_train.json; "
-            f"missing: {', '.join(missing)}"
-        )
-    if extra:
-        results = {name: results[name] for name in sorted(expected)}
 
     return {
         "_slice": SLICE,
@@ -183,10 +184,9 @@ def main() -> None:
         help="One or more pre-generated prediction artifacts to score as held-out test-slice methods.",
     )
     parser.add_argument("--scores", type=Path, default=Path("scoring/scores_test.json"))
-    parser.add_argument("--train-scores", type=Path, default=Path("scoring/scores_train.json"))
     args = parser.parse_args()
 
-    scores = evaluate_predictions(args.predictions, args.train_scores)
+    scores = evaluate_predictions(args.predictions)
     args.scores.parent.mkdir(parents=True, exist_ok=True)
     args.scores.write_text(json.dumps(scores, indent=2, sort_keys=True))
     print(json.dumps(scores, indent=2, sort_keys=True))

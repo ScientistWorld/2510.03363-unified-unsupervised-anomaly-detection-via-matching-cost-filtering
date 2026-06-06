@@ -2,8 +2,8 @@
 # Once you set action to 'done', STOP immediately.
 # Do NOT sleep, poll, or wait. The system reads this file
 # only after your turn ends.
-action: pending
+action: done
 gpus: 0
 test: false
 milestone: core_claim_plus
-notes: ""
+notes: "Improvements: standalone hidden test evaluation; added pixel AP, strict AUPRO, and category-balanced AUROC metrics; completed metric descriptions; conservative parameter default. Notes: see DESIGN_NOTES.md."

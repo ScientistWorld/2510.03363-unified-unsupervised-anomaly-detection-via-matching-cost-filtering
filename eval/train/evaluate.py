@@ -44,6 +44,7 @@ def split_mask(categories: np.ndarray, labels: np.ndarray, indices: np.ndarray) 
 
 
 def summarize(
+    categories: np.ndarray,
     labels: np.ndarray,
     masks: np.ndarray,
     image_scores: np.ndarray,
@@ -55,9 +56,29 @@ def summarize(
         "pixel_auroc": auroc(masks, maps),
         "ucf_params_M": float(params_m),
         "image_ap": ap(labels, image_scores),
+        "pixel_ap": ap(masks, maps),
         "pixel_f1_max": f1_max(masks, maps),
         "pixel_aupro": aupro(masks, maps),
+        "pixel_aupro_5pct": aupro(masks, maps, max_fpr=0.05),
+        "category_mean_image_auroc": category_mean_metric(categories, labels, image_scores, auroc),
+        "category_mean_pixel_auroc": category_mean_metric(categories, masks, maps, auroc),
     }
+
+
+def category_mean_metric(
+    categories: np.ndarray,
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    metric,
+) -> float:
+    categories = categories.reshape(-1)
+    values = []
+    for category in np.unique(categories):
+        keep = categories == category
+        value = metric(y_true[keep], y_score[keep])
+        if np.isfinite(value):
+            values.append(value)
+    return float(np.mean(values)) if values else float("nan")
 
 
 def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
@@ -70,7 +91,7 @@ def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
         for key in ("params_m", "ucf_params_M", "method_params_M", "added_params_M"):
             if key in metadata:
                 return float(metadata[key])
-    return 0.16
+    return 43.0
 
 
 def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
@@ -108,8 +129,9 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
             raise ValueError(f"{prediction_path} is missing required arrays: {', '.join(missing)}")
 
         labels = data["labels"]
+        categories = data["categories"]
         masks = data["masks"]
-        keep = split_mask(data["categories"], labels, data["indices"])
+        keep = split_mask(categories, labels, data["indices"])
         split_counts[str(prediction_path)] = {
             "slice": SLICE,
             "selected": int(keep.sum()),
@@ -118,6 +140,7 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
 
         if artifact_index == 0:
             results["anomaldf"] = summarize(
+                categories[keep],
                 labels[keep],
                 masks[keep],
                 data["baseline_scores"][keep],
@@ -127,6 +150,7 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
 
         method_name = unique_name(stable_method_name(prediction_path), used_names, prediction_path)
         results[method_name] = summarize(
+            categories[keep],
             labels[keep],
             masks[keep],
             data["fused_scores"][keep],

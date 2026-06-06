@@ -5,13 +5,30 @@
       "weight": 1.0,
       "primary_metric": "pixel_auroc",
       "metrics": {
-        "image_auroc": {"higher_is_better": true, "coefficient": 0.8},
-        "pixel_auroc": {"higher_is_better": true, "coefficient": 1.0},
-        "ucf_params_M": {"higher_is_better": false, "coefficient": -0.15},
+        "image_auroc": {
+          "higher_is_better": true,
+          "coefficient": 0.8,
+          "description": "Image-level AUROC measures whether anomalous images rank above normal images."
+        },
+        "pixel_auroc": {
+          "higher_is_better": true,
+          "coefficient": 1.0,
+          "description": "Pixel-level AUROC is the headline localization ranking metric for anomaly maps."
+        },
+        "ucf_params_M": {
+          "higher_is_better": false,
+          "coefficient": -0.15,
+          "description": "Added trainable parameter count penalizes methods that buy accuracy with a much larger filtering module."
+        },
         "image_ap": {
           "higher_is_better": true,
           "coefficient": 0.35,
           "description": "Image-level average precision rewards ranking anomalous images above normal images under class imbalance."
+        },
+        "pixel_ap": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "Pixel-level average precision rewards precise anomaly localization when anomalous pixels are sparse."
         },
         "pixel_f1_max": {
           "higher_is_better": true,
@@ -22,6 +39,21 @@
           "higher_is_better": true,
           "coefficient": 0.4,
           "description": "Per-region overlap at low false-positive rates measures anomaly localization quality beyond pixelwise ranking."
+        },
+        "pixel_aupro_5pct": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "AUPRO at a stricter 5% false-positive-rate cap catches broad heatmaps that localize defects only by flooding normal pixels."
+        },
+        "category_mean_image_auroc": {
+          "higher_is_better": true,
+          "coefficient": 0.3,
+          "description": "Unweighted category-mean image AUROC catches methods that improve only the easiest or most common categories."
+        },
+        "category_mean_pixel_auroc": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "Unweighted category-mean pixel AUROC checks that localization gains transfer across object and texture categories."
         }
       },
       "results": {
