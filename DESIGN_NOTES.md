@@ -28,10 +28,11 @@
 ## Completed Runner Check
 
 - Job `1ffa5b29-c1f` ran `scripts/evaluate_train.sh` and `scripts/evaluate_test.sh` successfully on CPU and wrote `scoring/scores_train.json` plus `scoring/scores_test.json`.
-- The score files contain the same method identifiers (`anomaldf`, `anomaldf_ucf`, `ucf_synthetic_seed13`) and all 10 nonzero reference metrics for each method on both slices.
+- The score files contain the same reference method identifiers (`anomaldf`, `anomaldf_ucf`) and all 10 nonzero reference metrics for each method on both slices.
 - The train/test files are not byte-identical. For the final `anomaldf_ucf` artifact, primary `pixel_auroc` is 77.5035 on train and 72.7855 on test; the baseline is 73.2767 on train and 69.3723 on test.
 - The strict low-FPR localization metrics are low but nonzero rather than saturated: `anomaldf_ucf` has `pixel_aupro_5pct` 5.1266 on train and 3.0399 on test.
 - The UCF parameter constraint uses the conservative 43.0M fallback because the existing prediction artifacts do not report parameter metadata.
+- Robustness artifacts such as `outputs/ucf_synthetic_seed13/predictions.npz` are ignored by canonical split scoring unless their derived method name is listed in `scoring/reference.json`.
 
 ## Fixed Patterns
 

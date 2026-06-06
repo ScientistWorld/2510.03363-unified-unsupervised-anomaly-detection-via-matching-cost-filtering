@@ -104,15 +104,30 @@ def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
     return name
 
 
-def evaluate_predictions(prediction_paths: list[Path]) -> dict:
+def load_reference_methods(reference_path: Path) -> set[str] | None:
+    if not reference_path.exists():
+        return None
+    reference = json.loads(reference_path.read_text())
+    methods: set[str] = set()
+    for experiment in reference.get("experiments", {}).values():
+        methods.update(experiment.get("results", {}).keys())
+    return methods or None
+
+
+def evaluate_predictions(prediction_paths: list[Path], reference_methods: set[str] | None = None) -> dict:
     if not prediction_paths:
         raise ValueError("at least one prediction artifact is required")
 
     results: dict[str, dict[str, float]] = {}
     used_names: set[str] = set()
     split_counts: dict[str, dict[str, int | str]] = {}
+    included_count = 0
 
-    for artifact_index, prediction_path in enumerate(prediction_paths):
+    for prediction_path in prediction_paths:
+        method_base = stable_method_name(prediction_path)
+        if reference_methods is not None and method_base not in reference_methods:
+            continue
+
         data = np.load(prediction_path)
         required = {
             "labels",
@@ -138,7 +153,7 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
             "total": int(labels.shape[0]),
         }
 
-        if artifact_index == 0:
+        if included_count == 0:
             results["anomaldf"] = summarize(
                 categories[keep],
                 labels[keep],
@@ -148,7 +163,7 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
                 0.0,
             )
 
-        method_name = unique_name(stable_method_name(prediction_path), used_names, prediction_path)
+        method_name = unique_name(method_base, used_names, prediction_path)
         results[method_name] = summarize(
             categories[keep],
             labels[keep],
@@ -157,6 +172,10 @@ def evaluate_predictions(prediction_paths: list[Path]) -> dict:
             data["fused_maps"][keep],
             load_params_m(prediction_path, data),
         )
+        included_count += 1
+
+    if included_count == 0:
+        raise ValueError("no prediction artifacts matched reference.json method names")
 
     return {
         "_slice": SLICE,
@@ -184,9 +203,10 @@ def main() -> None:
         help="One or more pre-generated prediction artifacts to score as visible train-slice methods.",
     )
     parser.add_argument("--scores", type=Path, default=Path("scoring/scores_train.json"))
+    parser.add_argument("--reference", type=Path, default=Path("scoring/reference.json"))
     args = parser.parse_args()
 
-    scores = evaluate_predictions(args.predictions)
+    scores = evaluate_predictions(args.predictions, load_reference_methods(args.reference))
     args.scores.parent.mkdir(parents=True, exist_ok=True)
     args.scores.write_text(json.dumps(scores, indent=2, sort_keys=True))
     print(json.dumps(scores, indent=2, sort_keys=True))

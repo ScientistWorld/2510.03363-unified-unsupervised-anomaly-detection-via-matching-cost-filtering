@@ -6,11 +6,6 @@
         "selected": 42,
         "slice": "test",
         "total": 84
-      },
-      "outputs/ucf_synthetic_seed13/predictions.npz": {
-        "selected": 42,
-        "slice": "test",
-        "total": 84
       }
     },
     "seed": 20261003,
@@ -42,18 +37,6 @@
           "pixel_aupro_5pct": 3.0398903366060877,
           "pixel_auroc": 72.78546221128848,
           "pixel_f1_max": 8.031235327550645,
-          "ucf_params_M": 43.0
-        },
-        "ucf_synthetic_seed13": {
-          "category_mean_image_auroc": 52.59259259259259,
-          "category_mean_pixel_auroc": 75.5635115981695,
-          "image_ap": 66.98179434178071,
-          "image_auroc": 50.123456790123456,
-          "pixel_ap": 4.087874202534015,
-          "pixel_aupro": 33.06137271145113,
-          "pixel_aupro_5pct": 3.5023444774080086,
-          "pixel_auroc": 75.37929401719718,
-          "pixel_f1_max": 9.007712674110483,
           "ucf_params_M": 43.0
         }
       }

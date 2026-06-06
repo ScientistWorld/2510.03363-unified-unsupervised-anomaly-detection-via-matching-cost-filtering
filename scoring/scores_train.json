@@ -6,11 +6,6 @@
         "selected": 42,
         "slice": "train",
         "total": 84
-      },
-      "outputs/ucf_synthetic_seed13/predictions.npz": {
-        "selected": 42,
-        "slice": "train",
-        "total": 84
       }
     },
     "seed": 20261003,
@@ -42,18 +37,6 @@
           "pixel_aupro_5pct": 5.126586339409053,
           "pixel_auroc": 77.50348682438529,
           "pixel_f1_max": 10.004212299915228,
-          "ucf_params_M": 43.0
-        },
-        "ucf_synthetic_seed13": {
-          "category_mean_image_auroc": 70.37037037037037,
-          "category_mean_pixel_auroc": 78.71047086310624,
-          "image_ap": 82.89866416988659,
-          "image_auroc": 71.11111111111111,
-          "pixel_ap": 6.347409794361636,
-          "pixel_aupro": 41.79767478870918,
-          "pixel_aupro_5pct": 8.218384618077963,
-          "pixel_auroc": 78.17683696337187,
-          "pixel_f1_max": 11.465622391987452,
           "ucf_params_M": 43.0
         }
       }
