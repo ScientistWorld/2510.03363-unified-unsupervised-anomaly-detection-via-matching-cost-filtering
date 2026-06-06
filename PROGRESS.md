@@ -16,12 +16,16 @@ The fourth compute job used the final 40-epoch default, matching the paper's epo
 
 The 2026-06-06 continuation audit restored `core_claim` after the milestone reset. The method code is identifiable as UCF rather than a surrogate: it builds hierarchical patch-template cosine cost volumes, converts them to anomaly costs, uses min-pooled matching maps as the raw baseline, filters the 3D volume with residual channel/spatial attention and image/map guidance, trains with focal, class, soft-IoU, and SSIM losses, and writes prediction artifacts consumed by an evaluator that does not import `method/`.
 
+The attempted additional-seed run on 2026-06-06 trained both the default split and `SEED=13`. The extra seed also supported the claim, improving image AUROC from 51.7 to 60.0 and pixel AUROC from 71.1 to 76.6. The job failed only at the final validation step because `scoring/scores.json` contained an extra experiment not present in the paper-derived `reference.json`. `scripts/run.sh` now writes combined robustness results to `scoring/robustness_scores.json` and restores canonical `scores.json` to the reference experiment before running `validate.py --compare`.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
 
 - `anomaldf` baseline: image AUROC 51.7, pixel AUROC 71.1, UCF parameters 0.00M.
 - `anomaldf_ucf`: image AUROC 52.5, pixel AUROC 74.9, UCF parameters 0.16M.
+
+Additional robustness result from the failed validation job, kept outside canonical `scores.json`: with `SEED=13`, UCF improved image AUROC from 51.7 to 60.0 and pixel AUROC from 71.1 to 76.6.
 
 ## Remaining
 
@@ -32,6 +36,8 @@ To go beyond `core_claim`, the next meaningful step would be replacing the compa
 The exact MVTec-AD dataset and DINOv2/AnomalDF backbone are not used in this first pass to avoid large downloads and GPU-heavy feature extraction. The reproduction instead targets the UCF algorithm itself in a compact RGB setting.
 
 The bare login Python still lacks NumPy, so `scripts/evaluate.sh` cannot run outside the configured container. This is not a packaging failure: `environment/setup.sh` installs NumPy and scikit-learn, and completed compute jobs have run the evaluator and `validate.py --compare` successfully inside the container.
+
+The 2026-06-06 `af7cf417-13b` job exited with code 1 because the validator rejected an extra `rgb_synthetic_seed13` experiment in `scores.json`. The experiment outputs were valid; the packaging contract is fixed by storing extra-seed metrics in `scoring/robustness_scores.json` and leaving canonical `scores.json` aligned with `reference.json`.
 
 ## Deviations from Paper
 

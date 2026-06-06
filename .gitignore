@@ -179,6 +179,7 @@ ray_results/
 tb_logs/
 runs/
 events.out.tfevents.*
+scoring/robustness_scores.json
 catboost_info/
 .aim/
 .neptune/
