@@ -1,8 +1,6 @@
 # IMPORTANT: Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends. Sleeping blocks the entire pipeline.
-action: submit
-gpus: 0
-test: false
-milestone: core_claim
-notes: "Fixed score packaging after af7cf417-13b: robustness seed metrics now go to scoring/robustness_scores.json and canonical scores.json is restored before validate.py --compare. Resubmit CPU end-to-end run."
+action: done
+milestone: core_claim_plus
+notes: "Job b5f79477-1df completed successfully. Canonical scores validate for the paper-referenced compact UCF experiment, and the generated robustness sidecar confirms the UCF gain on an additional deterministic seed."

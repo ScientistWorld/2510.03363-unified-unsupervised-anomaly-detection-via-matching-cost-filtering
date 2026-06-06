@@ -21,4 +21,4 @@
 - Canonical `scores.json` remains valid for the paper-referenced experiment, and the generated robustness sidecar confirms the UCF gain under `SEED=13`: image AUROC 51.7 to 60.0 and pixel AUROC 71.1 to 76.6.
 
 ## Stop Justification
-- Reached `core_claim_plus` on the compact RGB reproduction. Higher milestones would require moving from the procedural feature source to MVTec-AD plus DINOv2/AnomalDF-scale features, which is outside the current compact packaged benchmark.
+- Completed at milestone `core_claim_plus`.
