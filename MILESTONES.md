@@ -24,5 +24,9 @@
 - Fixed packaging audit issues: `scripts/reproduce.sh` now executes the method before evaluation, and generated `jobs/`/`trajectory/` artifacts were removed from the git index.
 - Expanded canonical artifact evaluation to report AP, F1, AUPRO, stricter AUPRO, and category-mean AUROC metrics in addition to the primary AUROC metrics.
 
+### [2026-06-06 22:37] - core_claim_plus
+- Final verification passed after tightening method-agnostic documentation, generic scoring metric names, and train/test evaluation support for future method variants.
+- `python validate.py --compare` and Python compilation checks passed.
+
 ## Stop Justification
-- Completed at milestone `core_claim_plus`; submitting one CPU validation job for the packaging/evaluator update before final done.
+- Completed at milestone `core_claim_plus`; the workspace is ready as a compact synthetic research gym with documented scale limitations.

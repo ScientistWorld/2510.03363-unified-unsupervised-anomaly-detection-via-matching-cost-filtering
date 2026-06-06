@@ -15,7 +15,7 @@
           "coefficient": 1.0,
           "description": "Pixel-level AUROC is the headline localization ranking metric for anomaly maps."
         },
-        "ucf_params_M": {
+        "added_params_M": {
           "higher_is_better": false,
           "coefficient": -0.15,
           "description": "Added trainable parameter count penalizes methods that buy accuracy with a much larger filtering module."
@@ -61,13 +61,13 @@
           "type": "baseline",
           "image_auroc": 96.8,
           "pixel_auroc": 98.1,
-          "ucf_params_M": 0.0
+          "added_params_M": 0.0
         },
         "anomaldf_ucf": {
           "type": "proposed",
           "image_auroc": 98.5,
           "pixel_auroc": 98.8,
-          "ucf_params_M": 43.0
+          "added_params_M": 43.0
         }
       }
     }

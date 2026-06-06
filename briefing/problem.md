@@ -10,4 +10,4 @@ Industrial inspection and medical screening often have abundant normal data but 
 
 ## Success Criteria
 
-A successful system separates normal from abnormal test images, localizes defect regions accurately, and does so without changing the upstream normal-template feature source or using real anomaly labels during training.
+A successful system separates normal from abnormal test images, localizes defect regions accurately, and does so without using real anomaly labels during training.

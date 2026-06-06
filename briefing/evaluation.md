@@ -4,11 +4,11 @@
 
 Image-level AUROC measures whether anomalous images receive higher image scores than normal images. Pixel-level AUROC measures whether anomalous pixels receive higher heatmap scores than normal pixels. Both metrics are reported as percentages, and higher is better.
 
-The constraint metric is added trainable parameter count in millions. Lower is better because the benchmark should reward improved anomaly detection without simply scaling model capacity.
+Additional ranking and localization diagnostics include image/pixel average precision, best pixel F1 over thresholds, per-region overlap at low false-positive rates, and category-mean AUROC. The constraint metric is added trainable parameter count in millions. Lower is better because the benchmark should reward improved anomaly detection without simply scaling model capacity.
 
 ## Baselines and Targets
 
-The paper's selected reference for this compact reproduction is the RGB multi-class AnomalDF comparison on MVTec-AD. The target method is the same baseline with the anomaly-map refinement plug-in added.
+The paper's selected reference for this compact reproduction is an RGB multi-class comparison on MVTec-AD. The reproduced benchmark uses a compact procedural substitute with the same output contract: an image-level anomaly score and a pixel-level anomaly heatmap for each test image.
 
 ## Evaluation Protocol
 

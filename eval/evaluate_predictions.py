@@ -38,7 +38,7 @@ def summarize(
         "pixel_aupro_5pct": aupro(masks, maps, max_fpr=0.05),
         "category_mean_image_auroc": category_image,
         "category_mean_pixel_auroc": category_pixel,
-        "ucf_params_M": float(params_m),
+        "added_params_M": float(params_m),
     }
 
 

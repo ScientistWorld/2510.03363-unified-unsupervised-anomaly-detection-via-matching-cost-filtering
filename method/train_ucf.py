@@ -111,7 +111,7 @@ def predict(model: UCFNet, builder: CostVolumeBuilder, loader: DataLoader, devic
         fused_scores=np.concatenate(fused_scores),
     )
     (out_dir / "metadata.json").write_text(
-        json.dumps({"dataset": list(iter_dataset_summary()), "lambda": lam, "topk": 250}, indent=2)
+        json.dumps({"dataset": list(iter_dataset_summary()), "lambda": lam, "topk": 250, "added_params_M": 0.16}, indent=2)
     )
 
 

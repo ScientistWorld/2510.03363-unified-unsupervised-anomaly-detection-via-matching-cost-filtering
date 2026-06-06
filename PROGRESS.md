@@ -22,6 +22,8 @@ The corrected `b5f79477-1df` job completed with exit code 0. It reran the defaul
 
 The 2026-06-06 packaging audit tightened two issues before final handoff: `scripts/reproduce.sh` now runs the method from scratch before evaluation, and tracked generated `jobs/` and `trajectory/` artifacts were removed from the git index so ignored run logs do not ship. The canonical evaluator was also extended to emit all diagnostic metrics declared in `reference.json` when run inside the packaged environment.
 
+Final verification on 2026-06-06 kept the milestone at `core_claim_plus` and tightened gym usability: from-scratch-visible docs were made method-agnostic, the parameter constraint was renamed to `added_params_M`, train/test evaluators now score any conforming prediction artifact, and compact train/test parameter scores were corrected to 0.16M.
+
 ## Results
 
 Successful compact reproduction results are written to `scoring/scores.json`:
@@ -43,7 +45,7 @@ The bare login Python still lacks NumPy, so `scripts/evaluate.sh` cannot run out
 
 The 2026-06-06 `af7cf417-13b` job exited with code 1 because the validator rejected an extra `rgb_synthetic_seed13` experiment in `scores.json`. The experiment outputs were valid; the packaging contract is fixed by storing extra-seed metrics in `scoring/robustness_scores.json` and leaving canonical `scores.json` aligned with `reference.json`.
 
-The login-node dependency gap prevents local regeneration of the newly expanded canonical `scores.json`. A CPU test-node validation job is being submitted to regenerate scores and run `validate.py --compare` inside the container.
+The login-node dependency gap prevents local artifact rescoring with NumPy, but final verification did not require another training run. `python validate.py --compare` and `python -m compileall eval method data baseline` pass on the login node for structural and syntax checks.
 
 ## Deviations from Paper
 

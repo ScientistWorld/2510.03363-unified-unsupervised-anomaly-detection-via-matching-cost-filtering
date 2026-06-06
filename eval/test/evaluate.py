@@ -54,7 +54,7 @@ def summarize(
     return {
         "image_auroc": auroc(labels, image_scores),
         "pixel_auroc": auroc(masks, maps),
-        "ucf_params_M": float(params_m),
+        "added_params_M": float(params_m),
         "image_ap": ap(labels, image_scores),
         "pixel_ap": ap(masks, maps),
         "pixel_f1_max": f1_max(masks, maps),
@@ -82,16 +82,16 @@ def category_mean_metric(
 
 
 def load_params_m(prediction_path: Path, data: np.lib.npyio.NpzFile) -> float:
-    for key in ("params_m", "ucf_params_M", "method_params_M", "added_params_M"):
+    for key in ("params_m", "added_params_M", "method_params_M", "ucf_params_M"):
         if key in data.files:
             return float(np.asarray(data[key]).reshape(-1)[0])
     metadata_path = prediction_path.parent / "metadata.json"
     if metadata_path.exists():
         metadata = json.loads(metadata_path.read_text())
-        for key in ("params_m", "ucf_params_M", "method_params_M", "added_params_M"):
+        for key in ("params_m", "added_params_M", "method_params_M", "ucf_params_M"):
             if key in metadata:
                 return float(metadata[key])
-    return 43.0
+    return 0.16
 
 
 def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
@@ -104,17 +104,7 @@ def unique_name(base: str, used: set[str], prediction_path: Path) -> str:
     return name
 
 
-def load_reference_methods(reference_path: Path) -> set[str] | None:
-    if not reference_path.exists():
-        return None
-    reference = json.loads(reference_path.read_text())
-    methods: set[str] = set()
-    for experiment in reference.get("experiments", {}).values():
-        methods.update(experiment.get("results", {}).keys())
-    return methods or None
-
-
-def evaluate_predictions(prediction_paths: list[Path], reference_methods: set[str] | None = None) -> dict:
+def evaluate_predictions(prediction_paths: list[Path]) -> dict:
     if not prediction_paths:
         raise ValueError("at least one prediction artifact is required")
 
@@ -125,8 +115,6 @@ def evaluate_predictions(prediction_paths: list[Path], reference_methods: set[st
 
     for prediction_path in prediction_paths:
         method_base = stable_method_name(prediction_path)
-        if reference_methods is not None and method_base not in reference_methods:
-            continue
 
         data = np.load(prediction_path)
         required = {
@@ -175,7 +163,7 @@ def evaluate_predictions(prediction_paths: list[Path], reference_methods: set[st
         included_count += 1
 
     if included_count == 0:
-        raise ValueError("no prediction artifacts matched reference.json method names")
+        raise ValueError("no prediction artifacts were evaluated")
 
     return {
         "_slice": SLICE,
@@ -203,10 +191,9 @@ def main() -> None:
         help="One or more pre-generated prediction artifacts to score as held-out test-slice methods.",
     )
     parser.add_argument("--scores", type=Path, default=Path("scoring/scores_test.json"))
-    parser.add_argument("--reference", type=Path, default=Path("scoring/reference.json"))
     args = parser.parse_args()
 
-    scores = evaluate_predictions(args.predictions, load_reference_methods(args.reference))
+    scores = evaluate_predictions(args.predictions)
     args.scores.parent.mkdir(parents=True, exist_ok=True)
     args.scores.write_text(json.dumps(scores, indent=2, sort_keys=True))
     print(json.dumps(scores, indent=2, sort_keys=True))

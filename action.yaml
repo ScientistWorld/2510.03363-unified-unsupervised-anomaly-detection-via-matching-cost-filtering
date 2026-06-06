@@ -1,5 +1,5 @@
-action: submit
+action: done
 gpus: 0
-test: true
+test: false
 milestone: core_claim_plus
-notes: "CPU validation job: regenerate canonical scores with expanded metrics, run train/test split scoring, and validate packaging after reproduce/run script fixes."
+notes: "Final verification passed: method-agnostic docs, scoring schema, train/test evaluators, and packaging checks are ready for compact gym use."

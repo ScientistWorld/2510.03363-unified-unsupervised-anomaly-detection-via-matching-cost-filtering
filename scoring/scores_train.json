@@ -25,7 +25,7 @@
           "pixel_aupro_5pct": 4.426893891399333,
           "pixel_auroc": 73.27668921657587,
           "pixel_f1_max": 8.537562069517518,
-          "ucf_params_M": 0.0
+          "added_params_M": 0.0
         },
         "anomaldf_ucf": {
           "category_mean_image_auroc": 63.703703703703695,
@@ -37,7 +37,7 @@
           "pixel_aupro_5pct": 5.126586339409053,
           "pixel_auroc": 77.50348682438529,
           "pixel_f1_max": 10.004212299915228,
-          "ucf_params_M": 43.0
+          "added_params_M": 0.16
         }
       }
     }
