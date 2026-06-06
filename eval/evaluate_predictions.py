@@ -44,7 +44,13 @@ def main() -> None:
         if args.experiment_names:
             name = args.experiment_names[idx]
         elif len(args.predictions) > 1:
-            name = "rgb_mvtec_multiclass" if idx == 0 else f"rgb_synthetic_seed{idx + 1}"
+            parent_name = pred_path.parent.name
+            if idx == 0:
+                name = "rgb_mvtec_multiclass"
+            elif "seed13" in parent_name:
+                name = "rgb_synthetic_seed13"
+            else:
+                name = f"rgb_synthetic_seed{idx + 1}"
         data = np.load(pred_path)
         labels = data["labels"]
         masks = data["masks"]
