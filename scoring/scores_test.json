@@ -16,28 +16,32 @@
       "_slice": "test",
       "results": {
         "anomaldf": {
-          "category_mean_image_auroc": 49.62962962962964,
-          "category_mean_pixel_auroc": 69.68326615143714,
-          "image_ap": 64.3367349320945,
-          "image_auroc": 47.90123456790123,
-          "pixel_ap": 3.344373742073797,
-          "pixel_aupro": 27.44570014516204,
-          "pixel_aupro_5pct": 2.473358271274911,
-          "pixel_auroc": 69.37234644316678,
-          "pixel_f1_max": 7.46462640084339,
-          "added_params_M": 0.0
+          "added_flops_G": 0.0,
+          "added_params_M": 0.0,
+          "category_mean_image_auroc": 60.0,
+          "category_mean_pixel_auroc": 69.51817824664624,
+          "image_ap": 70.89935665242405,
+          "image_auroc": 58.02469135802468,
+          "image_f1_max": 79.99999999876923,
+          "pixel_ap": 3.310555414186194,
+          "pixel_aupro": 26.350715632521815,
+          "pixel_aupro_5pct": 1.863567685326609,
+          "pixel_auroc": 69.4418177459232,
+          "pixel_f1_max": 7.457657779888126
         },
         "anomaldf_ucf": {
-          "category_mean_image_auroc": 55.55555555555555,
-          "category_mean_pixel_auroc": 72.9066498195901,
-          "image_ap": 63.96630503447508,
-          "image_auroc": 50.864197530864196,
-          "pixel_ap": 3.738319780859087,
-          "pixel_aupro": 30.435180105518512,
-          "pixel_aupro_5pct": 3.0398903366060877,
-          "pixel_auroc": 72.78546221128848,
-          "pixel_f1_max": 8.031235327550645,
-          "added_params_M": 0.16
+          "added_flops_G": 0.06421129405498505,
+          "added_params_M": 0.22442999482154846,
+          "category_mean_image_auroc": 57.77777777777778,
+          "category_mean_pixel_auroc": 74.00900971357079,
+          "image_ap": 66.59733127601089,
+          "image_auroc": 55.308641975308646,
+          "image_f1_max": 79.99999999876923,
+          "pixel_ap": 3.7539933493823416,
+          "pixel_aupro": 28.453813431634234,
+          "pixel_aupro_5pct": 1.7437331017201931,
+          "pixel_auroc": 73.97075559433517,
+          "pixel_f1_max": 8.864503601345506
         }
       }
     }
