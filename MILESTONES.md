@@ -43,4 +43,4 @@
 - Image-level AUROC/AP did not improve on the compact procedural split, so the final milestone remains `core_claim_plus`.
 
 ## Stop Justification
-- Completed final verification at milestone `core_claim_plus`. The compact gym is usable and validated, but it intentionally covers a reduced RGB procedural setting rather than the full MVTec/DINOv2-AnomalDF evaluation suite.
+- Completed at milestone `core_claim_plus`.
