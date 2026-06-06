@@ -1,4 +1,4 @@
-action: submit
+action: done
 gpus: 0
 test: false
-notes: "Run split train/test scoring against existing final prediction artifacts; populate scoring/scores_train.json and scoring/scores_test.json."
+notes: "Deterministic stratified 50/50 category-label split; 30 train metrics and 30 test metrics populated; anomaldf_ucf pixel_auroc 77.50 train vs 72.79 test, baseline 73.28 vs 69.37; no nulls, no byte-identical split, low-FPR AUPRO remains low but nonzero."
