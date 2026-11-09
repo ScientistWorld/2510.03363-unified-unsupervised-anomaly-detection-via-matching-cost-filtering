@@ -15,7 +15,7 @@ from sklearn.metrics import average_precision_score, roc_auc_score
 
 from data.synthetic_uad import SyntheticUADDataset
 from eval.train.evaluate import split_mask
-from redteam.methods import load_artifact, save_artifact, topk, AUDIT
+from redteam.methods import reference_artifact, save_artifact, topk
 
 
 def patches(image, width):
@@ -24,7 +24,7 @@ def patches(image, width):
 
 
 def main(folder):
-    arrays = load_artifact(AUDIT / 'reference_seed7/artifact/predictions.npz')
+    arrays = reference_artifact()
     train = SyntheticUADDataset('train', include_synthetic_train_anomalies=False)
     test = SyntheticUADDataset('test')
     categories = arrays['categories']

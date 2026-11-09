@@ -1,4 +1,8 @@
-action: submit
+# Once you set action to 'submit' or 'done', STOP immediately.
+# Do NOT sleep, poll, or wait for jobs. The system reads this file
+# only after your turn ends.
+action: pending
 gpus: 0
 test: false
-notes: "Reuse completed audit runs; test a genuine normal-only RGB guide calibration added to UCF, plus chance-level image detection with forged resource claims. Recompute normalized audit ranks."
+milestone: core_claim_plus
+notes: ""

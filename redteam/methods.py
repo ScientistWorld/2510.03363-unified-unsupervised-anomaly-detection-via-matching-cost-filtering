@@ -23,7 +23,11 @@ def load_artifact(path):
 
 
 def reference_artifact():
-    return load_artifact(AUDIT / 'reference_seed7/artifact/predictions.npz')
+    path = AUDIT / 'reference_seed7/artifact/predictions.npz'
+    if not path.exists():
+        # Make every case's run.sh usable independently in a fresh checkout.
+        prepare('reference_seed7', dict(kind='train', seed=7, epochs=40))
+    return load_artifact(path)
 
 
 def save_artifact(folder, arrays):

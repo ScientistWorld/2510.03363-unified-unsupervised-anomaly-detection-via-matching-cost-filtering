@@ -1,4 +1,6 @@
 Audit run entry point: `bash redteam/run_all.sh` in the packaged compute container.
+The completed findings are in `REDTEAM.md`. Check saved evidence without model
+execution using `python3 -m redteam.verify`.
 Each named folder has a `run.sh` that prepares its submission, exits that process,
 and invokes exactly `bash scripts/evaluate_test.sh` with no arguments. The
 unchanged evaluator sees one persisted `outputs/ucf_synthetic/predictions.npz`.
@@ -13,6 +15,9 @@ trained seed-7 run, not from hidden cached predictions.
 `summary.csv` are evidence. Prediction/checkpoint artifacts and verbose logs are
 ignored and can be regenerated. Resource negative/NaN payloads are deliberately
 impossible self-reports. They are shortcuts, not valid resource reductions.
+Individual cases automatically train the ordinary seed-7 reference if its
+ignored prediction artifact is absent. The batch skips folders with a saved
+`status.json`; remove that status to rerun a completed case.
 
 Ranks use the absolute coefficient, the declared better direction, and one
 population standard deviation per metric. The scientific cohort excludes all

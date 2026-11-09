@@ -37,9 +37,9 @@ def main():
         scale = {k: statistics.pstdev([r[k] for r in cohort.values()]) for k in metrics}
         scales[cohort_name] = scale
         ranks[cohort_name] = {}
-        # Apply the same denominator to every attempt, including out-of-cohort
-        # payloads. Scientific conclusions use only scientific members.
-        for name, row in values.items():
+        # A ranked attempt must be included in the population that supplies
+        # its denominator. Do not report shortcuts against a clean-only scale.
+        for name, row in cohort.items():
             ranks[cohort_name][name] = spec['weight'] * sum(
                 abs(d['coefficient']) * (1 if d['higher_is_better'] else -1)
                 * (row[k] - ref[k]) / scale[k]
@@ -67,7 +67,7 @@ def main():
     lines = ['case,image_auroc,pixel_auroc,image_ap,pixel_ap,pixel_f1_max,pixel_aupro,added_params_M,added_flops_G,scientific_cohort_rank,all_audit_rank']
     for name, row in values.items():
         fields = [name] + [f'{row[k]:.8g}' for k in ('image_auroc','pixel_auroc','image_ap','pixel_ap','pixel_f1_max','pixel_aupro','added_params_M','added_flops_G')]
-        fields += [f'{ranks[c][name]:.8g}' for c in cohorts]
+        fields += [f'{ranks[c][name]:.8g}' if name in ranks[c] else '' for c in cohorts]
         lines.append(','.join(fields))
     (ROOT / 'summary.csv').write_text('\n'.join(lines) + '\n')
     print('\n'.join(lines), flush=True)

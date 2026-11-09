@@ -1,0 +1,35 @@
+{
+  "starting_revision": "11cca7d",
+  "case_count": 21,
+  "successful_hidden_invocations": 20,
+  "expected_rejections": [
+    "nan_outputs_shortcut"
+  ],
+  "all_test_commands": [
+    "bash scripts/evaluate_test.sh"
+  ],
+  "evaluator_sha256": {
+    "eval/__init__.py": "8e242731660de3b130b7e80a9656ca8876affe833441502d066b013f818a91da",
+    "eval/evaluate_predictions.py": "36a1e0cd4ae464d57558f82cf1e622a54908195ffed8625b94c9da8fb53527d8",
+    "eval/metrics.py": "a94670384ab42250de276a2385aa02f6ef52a1151690f9981a9fbc217db078cf",
+    "eval/test/__init__.py": "854161c163cf59634486ba80990de5efcf1ad99908b5ff5fc5f339d4a4aa8a88",
+    "eval/test/evaluate.py": "e3428def71f83ad948c37de559978cf5737a6791da73b4a0d5b190f99add6596",
+    "eval/train/__init__.py": "bb57b9ca78d10400ddbe923d0beb56db2e66530f372f2b8444990a8c79ae7087",
+    "eval/train/evaluate.py": "1cc3a5286c7eea580979b5e92fb5c8201dc24e287d31fa996f1af1dd48f1a174",
+    "scripts/evaluate_test.sh": "e69de8867590578f0d8a0d82bd1c6bcdf869a9dd132fc2cef61ecc54f7747460"
+  },
+  "unchanged_directories": [
+    "baseline",
+    "briefing",
+    "data",
+    "environment",
+    "eval",
+    "method",
+    "scoring",
+    "scripts"
+  ],
+  "original_scoring_files_restored": true,
+  "baseline_replacement_shortcut_ties_fresh_seed7": true,
+  "finite_population_size": 20,
+  "checks": "passed"
+}

@@ -1,0 +1,22 @@
+[
+  {
+    "run_id": "95086ba0-264",
+    "status": "completed",
+    "returncode": 0,
+    "duration": 663.9603955745697,
+    "command": "bash /home/user/scripts/run.sh",
+    "submitted_at": 1794233245.2220333,
+    "started_at": 1794233248.9398363,
+    "completed_at": 1794233912.9002318
+  },
+  {
+    "run_id": "21426e0b-754",
+    "status": "completed",
+    "returncode": 0,
+    "duration": 60.03715682029724,
+    "command": "bash /home/user/scripts/run.sh",
+    "submitted_at": 1794234149.2046323,
+    "started_at": 1794234153.013667,
+    "completed_at": 1794234213.050824
+  }
+]

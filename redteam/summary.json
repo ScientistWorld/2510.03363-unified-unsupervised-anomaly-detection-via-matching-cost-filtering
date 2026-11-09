@@ -247,19 +247,19 @@
     "all_finite_audit_attempts": {
       "baseline_replacement_shortcut": -0.32184482354768246,
       "better_calibration": -0.32184482354768246,
-      "better_long_training": -1.0985409076118229,
+      "better_long_training": -1.0985409076118227,
       "better_normal_calibration": 9.025928567599632,
       "brute_force_visible_candidates_shortcut": 9.875650347870499,
-      "constant_image_shortcut": -0.24074398714098316,
+      "constant_image_shortcut": -0.24074398714098313,
       "constant_outputs_shortcut": -3.3293748352578527,
-      "failed_detection_resource_shortcut": 0.7394519948682039,
+      "failed_detection_resource_shortcut": 0.739451994868204,
       "failed_task_negative_shortcut": -2.3491788532486657,
-      "ground_truth_shortcut": 9.875650348179969,
+      "ground_truth_shortcut": 9.87565034817997,
       "original_reference": 0.0,
-      "reference_seed13": 0.3445839381414157,
+      "reference_seed13": 0.34458393814141575,
       "reference_seed23": -0.18801201863233716,
       "reference_seed7": -0.32184482354768246,
-      "resource_negative_shortcut": 0.658351288706465,
+      "resource_negative_shortcut": 0.6583512887064649,
       "resource_zero_shortcut": -0.3218446933027222,
       "score_file_shortcut": -3.3293748352578527,
       "test_population_shortcut": 4.765748118986263,
@@ -267,26 +267,15 @@
       "weaker_without_filter": -0.25813784065451995
     },
     "scientific_cohort": {
-      "baseline_replacement_shortcut": -0.3324511208551878,
       "better_calibration": -0.3324511208551878,
-      "better_long_training": -1.323403119730567,
-      "better_normal_calibration": 12.691140709349986,
-      "brute_force_visible_candidates_shortcut": 15.170150201794298,
-      "constant_image_shortcut": 0.8725984674038324,
-      "constant_outputs_shortcut": -4.013132010645741,
-      "failed_detection_resource_shortcut": 11949447.20141362,
-      "failed_task_negative_shortcut": 11949442.31568314,
-      "ground_truth_shortcut": 15.175854986283138,
+      "better_long_training": -1.3234031197305667,
+      "better_normal_calibration": 12.69114070934999,
       "original_reference": 0.0,
-      "reference_seed13": 0.4843650008290118,
+      "reference_seed13": 0.48436500082901174,
       "reference_seed23": -0.1799421010220414,
       "reference_seed7": -0.3324511208551878,
-      "resource_negative_shortcut": 11949447.10394368,
-      "resource_zero_shortcut": 0.775128526402195,
-      "score_file_shortcut": -4.013132010645741,
-      "test_population_shortcut": 6.202551907510403,
       "weaker_one_epoch": -0.8932751027666411,
-      "weaker_without_filter": 0.6049630251660353
+      "weaker_without_filter": 0.6049630251660354
     }
   },
   "reference": {
@@ -305,12 +294,12 @@
   },
   "seed_rank_spread": {
     "all_finite_audit_attempts": {
-      "max": 0.3445839381414157,
+      "max": 0.34458393814141575,
       "min": -0.32184482354768246,
-      "range": 0.6664287616890981
+      "range": 0.6664287616890983
     },
     "scientific_cohort": {
-      "max": 0.4843650008290118,
+      "max": 0.48436500082901174,
       "min": -0.3324511208551878,
       "range": 0.8168161216841996
     }
