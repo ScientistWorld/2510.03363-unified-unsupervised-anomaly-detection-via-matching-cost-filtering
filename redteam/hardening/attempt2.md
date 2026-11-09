@@ -9,7 +9,7 @@ hidden screw image AUROC 29.3).
 
 | run | slice | image_auroc | pixel_auroc | image_ap | image_f1_max | pixel_ap | pixel_f1_max | pixel_aupro |
 |---|---|---:|---:|---:|---:|---:|---:|---:|
-| anomaldf | test | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
+| anomaldf | test | 88.781 | 94.968 | 95.849 | 88.530 | 39.994 | 49.973 | 81.062 |
 | anomaldf_ucf | test | 79.944 | 87.395 | 93.267 | 84.514 | 60.582 | 61.376 | 60.449 |
 | ucf_1epoch | test | 84.885 | 93.927 | 93.834 | 87.365 | 46.344 | 52.090 | 86.122 |
 | ucf_n8_templates | test | 81.021 | 86.733 | 93.435 | 85.044 | 56.280 | 57.946 | 58.074 |
