@@ -1,0 +1,98 @@
+{
+  "_answers": {
+    "anomalous": 614,
+    "images": 845,
+    "map_size": 224,
+    "normal": 231
+  },
+  "_slice": "train",
+  "_task_gate": "image_auroc and pixel_auroc must both be >= 60.0; otherwise every metric is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_diagnostics": {
+        "ucf_nearest_templates": {
+          "per_category": {
+            "bottle": {
+              "image_auroc": 100.0,
+              "pixel_auroc": 99.82036627527766
+            },
+            "cable": {
+              "image_auroc": 76.98650674662669,
+              "pixel_auroc": 74.65362962908995
+            },
+            "capsule": {
+              "image_auroc": 69.89898989898991,
+              "pixel_auroc": 79.36754810722353
+            },
+            "carpet": {
+              "image_auroc": 98.92183288409703,
+              "pixel_auroc": 97.38997610314473
+            },
+            "grid": {
+              "image_auroc": 100.0,
+              "pixel_auroc": 98.86801015773855
+            },
+            "hazelnut": {
+              "image_auroc": 95.28571428571428,
+              "pixel_auroc": 86.14241410259106
+            },
+            "leather": {
+              "image_auroc": 98.0324074074074,
+              "pixel_auroc": 98.54790832352775
+            },
+            "metal_nut": {
+              "image_auroc": 99.99999999999999,
+              "pixel_auroc": 46.71760562921796
+            },
+            "pill": {
+              "image_auroc": 92.4102564102564,
+              "pixel_auroc": 81.03358251746056
+            },
+            "screw": {
+              "image_auroc": 86.56249999999999,
+              "pixel_auroc": 90.14664084133176
+            },
+            "tile": {
+              "image_auroc": 98.34183673469387,
+              "pixel_auroc": 97.89701884472503
+            },
+            "toothbrush": {
+              "image_auroc": 100.0,
+              "pixel_auroc": 97.73737257082567
+            },
+            "transistor": {
+              "image_auroc": 90.16666666666666,
+              "pixel_auroc": 61.39548037061013
+            },
+            "wood": {
+              "image_auroc": 92.11469534050178,
+              "pixel_auroc": 85.55372595596212
+            },
+            "zipper": {
+              "image_auroc": 99.63942307692308,
+              "pixel_auroc": 86.28965418751974
+            }
+          }
+        }
+      },
+      "_slice": "train",
+      "_sources": {
+        "ucf_nearest_templates": "redteam/hardening/outputs/ucf_nearest_templates/predictions.npz"
+      },
+      "_validity": {
+        "ucf_nearest_templates": "ok"
+      },
+      "results": {
+        "ucf_nearest_templates": {
+          "image_ap": 95.75320421778069,
+          "image_auroc": 87.7871314353399,
+          "image_f1_max": 87.00906344410876,
+          "pixel_ap": 36.62646962514825,
+          "pixel_aupro": 67.84695710498272,
+          "pixel_auroc": 69.71576805767587,
+          "pixel_f1_max": 42.40874584410138
+        }
+      }
+    }
+  }
+}

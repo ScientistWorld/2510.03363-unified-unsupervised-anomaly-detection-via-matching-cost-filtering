@@ -1,0 +1,35 @@
+{
+  "_answers": {
+    "anomalous": 644,
+    "images": 880,
+    "map_size": 224,
+    "normal": 236
+  },
+  "_slice": "test",
+  "_task_gate": "image_auroc and pixel_auroc must both be >= 60.0; otherwise every metric is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_diagnostics": {
+        "shortcut_nan_maps": {}
+      },
+      "_slice": "test",
+      "_sources": {
+        "shortcut_nan_maps": "redteam/hardening/outputs/shortcut_nan_maps/predictions.npz"
+      },
+      "_validity": {
+        "shortcut_nan_maps": "failed: non-finite image scores or anomaly maps"
+      },
+      "results": {
+        "shortcut_nan_maps": {
+          "image_ap": 0.0,
+          "image_auroc": 0.0,
+          "image_f1_max": 0.0,
+          "pixel_ap": 0.0,
+          "pixel_aupro": 0.0,
+          "pixel_auroc": 0.0,
+          "pixel_f1_max": 0.0
+        }
+      }
+    }
+  }
+}

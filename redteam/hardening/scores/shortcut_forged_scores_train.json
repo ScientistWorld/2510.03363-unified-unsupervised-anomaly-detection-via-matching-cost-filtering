@@ -1,0 +1,98 @@
+{
+  "_answers": {
+    "anomalous": 614,
+    "images": 845,
+    "map_size": 224,
+    "normal": 231
+  },
+  "_slice": "train",
+  "_task_gate": "image_auroc and pixel_auroc must both be >= 60.0; otherwise every metric is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_diagnostics": {
+        "shortcut_forged_scores": {
+          "per_category": {
+            "bottle": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "cable": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "capsule": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "carpet": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "grid": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "hazelnut": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "leather": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "metal_nut": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "pill": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "screw": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "tile": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "toothbrush": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "transistor": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "wood": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            },
+            "zipper": {
+              "image_auroc": 50.0,
+              "pixel_auroc": 50.0
+            }
+          }
+        }
+      },
+      "_slice": "train",
+      "_sources": {
+        "shortcut_forged_scores": "redteam/hardening/outputs/shortcut_forged_scores/predictions.npz"
+      },
+      "_validity": {
+        "shortcut_forged_scores": "failed: task gate: image_auroc=50.00, pixel_auroc=50.00 (both must be >= 60.0)"
+      },
+      "results": {
+        "shortcut_forged_scores": {
+          "image_ap": 0.0,
+          "image_auroc": 0.0,
+          "image_f1_max": 0.0,
+          "pixel_ap": 0.0,
+          "pixel_aupro": 0.0,
+          "pixel_auroc": 0.0,
+          "pixel_f1_max": 0.0
+        }
+      }
+    }
+  }
+}
