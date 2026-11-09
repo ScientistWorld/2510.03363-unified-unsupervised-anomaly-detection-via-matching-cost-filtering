@@ -1,0 +1,21 @@
+{
+  "reference_seed7": {"kind": "train", "seed": 7, "epochs": 40},
+  "reference_seed13": {"kind": "train", "seed": 13, "epochs": 40},
+  "reference_seed23": {"kind": "train", "seed": 23, "epochs": 40},
+  "weaker_one_epoch": {"kind": "train", "seed": 7, "epochs": 1},
+  "weaker_without_filter": {"kind": "unfiltered"},
+  "better_long_training": {"kind": "train", "seed": 7, "epochs": 160, "tune": true},
+  "better_calibration": {"kind": "calibration"},
+  "brute_force_visible_candidates_shortcut": {"kind": "enumerate_shortcut"},
+  "ground_truth_shortcut": {"kind": "ground_truth_shortcut"},
+  "resource_zero_shortcut": {"kind": "resource_zero_shortcut"},
+  "resource_negative_shortcut": {"kind": "resource_negative_shortcut"},
+  "failed_task_negative_shortcut": {"kind": "failed_task_negative_shortcut"},
+  "constant_image_shortcut": {"kind": "constant_image_shortcut"},
+  "baseline_replacement_shortcut": {"kind": "baseline_replacement_shortcut"},
+  "constant_outputs_shortcut": {"kind": "constant_outputs_shortcut"},
+  "nan_outputs_shortcut": {"kind": "nan_outputs_shortcut"},
+  "nan_resources_shortcut": {"kind": "nan_resources_shortcut"},
+  "score_file_shortcut": {"kind": "score_file_shortcut"},
+  "test_population_shortcut": {"kind": "test_population_shortcut"}
+}

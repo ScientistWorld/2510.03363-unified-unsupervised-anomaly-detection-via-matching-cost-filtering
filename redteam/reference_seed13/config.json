@@ -1,0 +1,5 @@
+{
+  "kind": "train",
+  "seed": 13,
+  "epochs": 40
+}

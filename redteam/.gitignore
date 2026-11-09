@@ -1,0 +1,6 @@
+_state/
+**/artifact/
+**/checkpoint.pt
+**/*.log
+**/__pycache__/
+**/*.pyc
