@@ -1,0 +1,14 @@
+{
+  "case": "ground_truth_shortcut",
+  "config": {
+    "kind": "ground_truth_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 10.2347092628479,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

@@ -1,0 +1,16 @@
+{
+  "case": "reference_seed13",
+  "config": {
+    "kind": "train",
+    "seed": 13,
+    "epochs": 40
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 62.435784578323364,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

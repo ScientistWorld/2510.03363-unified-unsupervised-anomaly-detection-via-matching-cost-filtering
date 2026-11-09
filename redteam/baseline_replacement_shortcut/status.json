@@ -1,0 +1,14 @@
+{
+  "case": "baseline_replacement_shortcut",
+  "config": {
+    "kind": "baseline_replacement_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 10.495564222335815,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

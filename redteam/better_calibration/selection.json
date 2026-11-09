@@ -1,0 +1,151 @@
+{
+  "selected": {
+    "fusion_lambda": 0.5,
+    "topk": 250,
+    "visible_train_objective": 1.472100375397359,
+    "visible_train_pixel_auroc": 74.99783505181598,
+    "visible_train_image_auroc": 57.777777777777786
+  },
+  "candidates": [
+    {
+      "fusion_lambda": 0.0,
+      "topk": 1,
+      "visible_train_objective": 1.337540522896504,
+      "visible_train_pixel_auroc": 72.05089837896924,
+      "visible_train_image_auroc": 48.39506172839506
+    },
+    {
+      "fusion_lambda": 0.0,
+      "topk": 16,
+      "visible_train_objective": 1.2764913046602493,
+      "visible_train_pixel_auroc": 72.05089837896924,
+      "visible_train_image_auroc": 40.24691358024691
+    },
+    {
+      "fusion_lambda": 0.0,
+      "topk": 64,
+      "visible_train_objective": 1.3244985284749533,
+      "visible_train_pixel_auroc": 72.05089837896924,
+      "visible_train_image_auroc": 45.67901234567901
+    },
+    {
+      "fusion_lambda": 0.0,
+      "topk": 250,
+      "visible_train_objective": 1.416968579437585,
+      "visible_train_pixel_auroc": 72.05089837896924,
+      "visible_train_image_auroc": 53.58024691358024
+    },
+    {
+      "fusion_lambda": 0.25,
+      "topk": 1,
+      "visible_train_objective": 1.4335320412156003,
+      "visible_train_pixel_auroc": 73.61322765297022,
+      "visible_train_image_auroc": 54.32098765432099
+    },
+    {
+      "fusion_lambda": 0.25,
+      "topk": 16,
+      "visible_train_objective": 1.3843663681476703,
+      "visible_train_pixel_auroc": 73.61322765297022,
+      "visible_train_image_auroc": 50.617283950617285
+    },
+    {
+      "fusion_lambda": 0.25,
+      "topk": 64,
+      "visible_train_objective": 1.4037242101663907,
+      "visible_train_pixel_auroc": 73.61322765297022,
+      "visible_train_image_auroc": 53.086419753086425
+    },
+    {
+      "fusion_lambda": 0.25,
+      "topk": 250,
+      "visible_train_objective": 1.4461931330150395,
+      "visible_train_pixel_auroc": 73.61322765297022,
+      "visible_train_image_auroc": 55.308641975308646
+    },
+    {
+      "fusion_lambda": 0.5,
+      "topk": 1,
+      "visible_train_objective": 1.4630919465510084,
+      "visible_train_pixel_auroc": 74.99783505181598,
+      "visible_train_image_auroc": 56.04938271604939
+    },
+    {
+      "fusion_lambda": 0.5,
+      "topk": 16,
+      "visible_train_objective": 1.4635229562314527,
+      "visible_train_pixel_auroc": 74.99783505181598,
+      "visible_train_image_auroc": 56.790123456790134
+    },
+    {
+      "fusion_lambda": 0.5,
+      "topk": 64,
+      "visible_train_objective": 1.4321604791868079,
+      "visible_train_pixel_auroc": 74.99783505181598,
+      "visible_train_image_auroc": 53.827160493827165
+    },
+    {
+      "fusion_lambda": 0.5,
+      "topk": 250,
+      "visible_train_objective": 1.472100375397359,
+      "visible_train_pixel_auroc": 74.99783505181598,
+      "visible_train_image_auroc": 57.777777777777786
+    },
+    {
+      "fusion_lambda": 0.75,
+      "topk": 1,
+      "visible_train_objective": 1.4551606686725196,
+      "visible_train_pixel_auroc": 75.56513254064345,
+      "visible_train_image_auroc": 54.81481481481482
+    },
+    {
+      "fusion_lambda": 0.75,
+      "topk": 16,
+      "visible_train_objective": 1.4276926742137972,
+      "visible_train_pixel_auroc": 75.56513254064345,
+      "visible_train_image_auroc": 52.59259259259259
+    },
+    {
+      "fusion_lambda": 0.75,
+      "topk": 64,
+      "visible_train_objective": 1.4328403670547931,
+      "visible_train_pixel_auroc": 75.56513254064345,
+      "visible_train_image_auroc": 54.074074074074076
+    },
+    {
+      "fusion_lambda": 0.75,
+      "topk": 250,
+      "visible_train_objective": 1.4489383425988938,
+      "visible_train_pixel_auroc": 75.56513254064345,
+      "visible_train_image_auroc": 54.5679012345679
+    },
+    {
+      "fusion_lambda": 1.0,
+      "topk": 1,
+      "visible_train_objective": 1.3181077330990707,
+      "visible_train_pixel_auroc": 74.41772412404455,
+      "visible_train_image_auroc": 43.7037037037037
+    },
+    {
+      "fusion_lambda": 1.0,
+      "topk": 16,
+      "visible_train_objective": 1.3155750024534767,
+      "visible_train_pixel_auroc": 74.41772412404455,
+      "visible_train_image_auroc": 43.456790123456784
+    },
+    {
+      "fusion_lambda": 1.0,
+      "topk": 64,
+      "visible_train_objective": 1.3149692472052743,
+      "visible_train_pixel_auroc": 74.41772412404455,
+      "visible_train_image_auroc": 43.95061728395061
+    },
+    {
+      "fusion_lambda": 1.0,
+      "topk": 250,
+      "visible_train_objective": 1.3177189444499604,
+      "visible_train_pixel_auroc": 74.41772412404455,
+      "visible_train_image_auroc": 43.45679012345679
+    }
+  ]
+}

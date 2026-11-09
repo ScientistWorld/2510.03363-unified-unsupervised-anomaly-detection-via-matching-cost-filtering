@@ -1,0 +1,49 @@
+{
+  "_slice": "train",
+  "_split": {
+    "artifacts": {
+      "outputs/ucf_synthetic/predictions.npz": {
+        "selected": 42,
+        "slice": "train",
+        "total": 84
+      }
+    },
+    "seed": 20261003,
+    "style": "deterministic stratified 50/50 over category and anomaly label"
+  },
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_slice": "train",
+      "results": {
+        "anomaldf": {
+          "added_flops_G": 0.0,
+          "added_params_M": 0.0,
+          "category_mean_image_auroc": 55.55555555555555,
+          "category_mean_pixel_auroc": 71.95175454459569,
+          "image_ap": 73.47266536974256,
+          "image_auroc": 53.58024691358024,
+          "image_f1_max": 78.26086956408317,
+          "pixel_ap": 4.265316618060769,
+          "pixel_aupro": 32.18874056438536,
+          "pixel_aupro_5pct": 6.3921338263965595,
+          "pixel_auroc": 72.05089837896924,
+          "pixel_f1_max": 8.142493638675857
+        },
+        "anomaldf_ucf": {
+          "added_flops_G": 0.06421129405498505,
+          "added_params_M": 0.22442999482154846,
+          "category_mean_image_auroc": 67.4074074074074,
+          "category_mean_pixel_auroc": 73.55389281988606,
+          "image_ap": 74.74823166582189,
+          "image_auroc": 66.91358024691358,
+          "image_f1_max": 81.81818181694214,
+          "pixel_ap": 4.277597362463938,
+          "pixel_aupro": 32.40446802734087,
+          "pixel_aupro_5pct": 6.44871389372388,
+          "pixel_auroc": 73.35317420262493,
+          "pixel_f1_max": 9.178187403992974
+        }
+      }
+    }
+  }
+}

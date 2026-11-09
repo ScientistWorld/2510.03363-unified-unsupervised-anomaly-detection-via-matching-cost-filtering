@@ -1,0 +1,7 @@
+{
+  "candidates": 84,
+  "exact_matches": 84,
+  "comparisons": 3570,
+  "query_inputs": "RGB only",
+  "answer_source": "visible data.synthetic_uad test generator"
+}

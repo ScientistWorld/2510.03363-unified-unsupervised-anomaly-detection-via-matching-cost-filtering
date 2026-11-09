@@ -1,0 +1,14 @@
+{
+  "case": "weaker_without_filter",
+  "config": {
+    "kind": "unfiltered"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 10.45688247680664,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

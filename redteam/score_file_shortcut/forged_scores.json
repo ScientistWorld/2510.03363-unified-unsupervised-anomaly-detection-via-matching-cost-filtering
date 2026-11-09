@@ -1,0 +1,14 @@
+{
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "results": {
+        "anomaldf_ucf": {
+          "image_auroc": 100.0,
+          "pixel_auroc": 100.0,
+          "added_params_M": -1000000.0,
+          "added_flops_G": -1000000.0
+        }
+      }
+    }
+  }
+}

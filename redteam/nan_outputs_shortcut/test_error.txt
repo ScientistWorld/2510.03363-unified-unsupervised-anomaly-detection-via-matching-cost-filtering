@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/user/eval/test/evaluate.py", line 228, in <module>
+    main()
+  File "/home/user/eval/test/evaluate.py", line 221, in main
+    scores = evaluate_predictions(args.predictions)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/eval/test/evaluate.py", line 179, in evaluate_predictions
+    results[method_name] = summarize(
+                           ^^^^^^^^^^
+  File "/home/user/eval/test/evaluate.py", line 57, in summarize
+    "image_auroc": auroc(labels, image_scores),
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/eval/metrics.py", line 12, in auroc
+    return float(roc_auc_score(y_true, y_score) * 100.0)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sklearn/utils/_param_validation.py", line 218, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sklearn/metrics/_ranking.py", line 710, in roc_auc_score
+    y_score = check_array(y_score, ensure_2d=False)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/sklearn/utils/validation.py", line 1087, in check_array
+    _assert_all_finite(
+  File "/usr/local/lib/python3.11/site-packages/sklearn/utils/validation.py", line 137, in _assert_all_finite
+    _assert_all_finite_element_wise(
+  File "/usr/local/lib/python3.11/site-packages/sklearn/utils/validation.py", line 186, in _assert_all_finite_element_wise
+    raise ValueError(msg_err)
+ValueError: Input contains NaN.

@@ -1,0 +1,14 @@
+{
+  "case": "test_population_shortcut",
+  "config": {
+    "kind": "test_population_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 10.247725009918213,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

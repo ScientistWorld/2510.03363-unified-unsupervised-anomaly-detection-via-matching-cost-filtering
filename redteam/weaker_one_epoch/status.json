@@ -1,0 +1,16 @@
+{
+  "case": "weaker_one_epoch",
+  "config": {
+    "kind": "train",
+    "seed": 7,
+    "epochs": 1
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 25.380793571472168,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

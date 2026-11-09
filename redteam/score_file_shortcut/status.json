@@ -1,0 +1,14 @@
+{
+  "case": "score_file_shortcut",
+  "config": {
+    "kind": "score_file_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 8.172874212265015,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

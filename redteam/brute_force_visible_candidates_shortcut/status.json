@@ -1,0 +1,14 @@
+{
+  "case": "brute_force_visible_candidates_shortcut",
+  "config": {
+    "kind": "enumerate_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 16.412870407104492,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

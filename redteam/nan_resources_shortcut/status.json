@@ -1,0 +1,14 @@
+{
+  "case": "nan_resources_shortcut",
+  "config": {
+    "kind": "nan_resources_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 8.031574249267578,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

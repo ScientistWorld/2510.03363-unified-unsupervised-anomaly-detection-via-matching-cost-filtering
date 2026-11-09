@@ -1,0 +1,87 @@
+{
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "description": "Unimodal RGB multi-class anomaly detection/localization. Paper reference is AnomalDF with and without UCF on MVTec-AD from Table I, with UCF parameter overhead from the efficiency analysis.",
+      "weight": 1.0,
+      "primary_metric": "pixel_auroc",
+      "metrics": {
+        "image_auroc": {
+          "higher_is_better": true,
+          "coefficient": 0.8,
+          "description": "Image-level AUROC measures whether anomalous images rank above normal images."
+        },
+        "pixel_auroc": {
+          "higher_is_better": true,
+          "coefficient": 1.0,
+          "description": "Pixel-level AUROC is the headline localization ranking metric for anomaly maps."
+        },
+        "added_params_M": {
+          "higher_is_better": false,
+          "coefficient": -0.15,
+          "description": "Added trainable parameter count penalizes methods that buy accuracy with a much larger filtering module."
+        },
+        "added_flops_G": {
+          "higher_is_better": false,
+          "coefficient": -0.2,
+          "description": "Added per-image computational cost in GFLOPs penalizes methods that buy accuracy with much heavier filtering."
+        },
+        "image_ap": {
+          "higher_is_better": true,
+          "coefficient": 0.35,
+          "description": "Image-level average precision rewards ranking anomalous images above normal images under class imbalance."
+        },
+        "image_f1_max": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "Best image-level F1 over thresholds checks whether detection scores can support a usable operating point."
+        },
+        "pixel_ap": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "Pixel-level average precision rewards precise anomaly localization when anomalous pixels are sparse."
+        },
+        "pixel_f1_max": {
+          "higher_is_better": true,
+          "coefficient": 0.3,
+          "description": "Best pixel-level F1 over thresholds checks whether localization maps can support a usable segmentation threshold."
+        },
+        "pixel_aupro": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "Per-region overlap at low false-positive rates measures anomaly localization quality beyond pixelwise ranking."
+        },
+        "pixel_aupro_5pct": {
+          "higher_is_better": true,
+          "coefficient": 0.25,
+          "description": "AUPRO at a stricter 5% false-positive-rate cap catches broad heatmaps that localize defects only by flooding normal pixels."
+        },
+        "category_mean_image_auroc": {
+          "higher_is_better": true,
+          "coefficient": 0.3,
+          "description": "Unweighted category-mean image AUROC catches methods that improve only the easiest or most common categories."
+        },
+        "category_mean_pixel_auroc": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "Unweighted category-mean pixel AUROC checks that localization gains transfer across object and texture categories."
+        }
+      },
+      "results": {
+        "anomaldf": {
+          "type": "baseline",
+          "image_auroc": 96.8,
+          "pixel_auroc": 98.1,
+          "added_params_M": 0.0,
+          "added_flops_G": 0.0
+        },
+        "anomaldf_ucf": {
+          "type": "proposed",
+          "image_auroc": 98.5,
+          "pixel_auroc": 98.8,
+          "added_params_M": 43.8,
+          "added_flops_G": 32.7
+        }
+      }
+    }
+  }
+}

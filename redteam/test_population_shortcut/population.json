@@ -1,0 +1,19 @@
+{
+  "source": "visible train slice only",
+  "original_size": 84,
+  "submitted_size": 12,
+  "chosen_original_indices": [
+    6,
+    6,
+    10,
+    10,
+    36,
+    36,
+    38,
+    38,
+    57,
+    57,
+    67,
+    67
+  ]
+}

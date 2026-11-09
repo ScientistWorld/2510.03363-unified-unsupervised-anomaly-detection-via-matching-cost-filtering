@@ -1,0 +1,14 @@
+{
+  "case": "resource_negative_shortcut",
+  "config": {
+    "kind": "resource_negative_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 10.476768732070923,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

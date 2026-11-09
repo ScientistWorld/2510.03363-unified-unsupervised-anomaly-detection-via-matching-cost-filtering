@@ -1,0 +1,14 @@
+{
+  "case": "constant_outputs_shortcut",
+  "config": {
+    "kind": "constant_outputs_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 10.424437999725342,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}
