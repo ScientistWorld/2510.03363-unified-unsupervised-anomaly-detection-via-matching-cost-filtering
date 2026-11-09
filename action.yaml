@@ -1,8 +1,8 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: pending
-gpus: 0
+action: submit
+gpus: 1
 test: false
 milestone: core_claim_plus
-notes: ""
+notes: "Rerun with corrected UCF readout (filtered cost volume keeps the D*N matching dimension, residual on last-layer costs, min-pool -> conv -> softmax). Reuses prepared data, AnomalDF baseline, kNN and dev-supervised outputs; retrains reference seed 0 and the full hardening study (seeds 1-2, TTA/nearest/N=8, 1-epoch/no-guidance, shortcuts)."
