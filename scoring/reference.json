@@ -1,85 +1,63 @@
 {
   "experiments": {
     "rgb_mvtec_multiclass": {
-      "description": "Unimodal RGB multi-class anomaly detection/localization. Paper reference is AnomalDF with and without UCF on MVTec-AD from Table I, with UCF parameter overhead from the efficiency analysis.",
+      "description": "Unimodal RGB multi-class anomaly detection and localization on MVTec-AD (15 categories, one model for all). Paper reference: AnomalDF with and without UCF, Table I (image/pixel AUROC). The gym runs the same dataset at 224x224 with a frozen DINOv2 ViT-S/14 and scores a hidden half of the official test set whose defect types are disjoint from the visible development half.",
       "weight": 1.0,
       "primary_metric": "pixel_auroc",
+      "_scale_note": "Scaled setup: 224px inputs (16x16 patch grid), DINOv2 ViT-S/14, N=3 random templates, compact 3D U-Net filter (about 4M parameters), hidden half of the MVTec-AD test set (about 860 images). The paper's numbers below come from the full-resolution AnomalDF setting on the whole test set; they are kept for reference and are not expected to be matched at this scale.",
+      "_paper_overhead": {
+        "anomaldf_ucf_added_params_M": 43.8,
+        "anomaldf_ucf_added_flops_G": 32.7,
+        "note": "Table XII efficiency of AnomalDF+UCF. Self-reported cost numbers are not scored: the evaluator cannot recompute them from raw outputs."
+      },
+      "_paper_table_iv_metrics": "The paper reports I-AUROC, I-AP, I-F1max, P-AUROC, P-AP, P-F1max and P-AUPRO for its RGB baselines (Table IV); AnomalDF+UCF itself is reported with I-/P-AUROC (Table I).",
       "metrics": {
         "image_auroc": {
           "higher_is_better": true,
-          "coefficient": 0.8,
-          "description": "Image-level AUROC measures whether anomalous images rank above normal images."
+          "coefficient": 1.0,
+          "description": "Image-level AUROC (%) of the per-image anomaly score: anomalous images ranked above normal ones."
         },
         "pixel_auroc": {
           "higher_is_better": true,
           "coefficient": 1.0,
-          "description": "Pixel-level AUROC is the headline localization ranking metric for anomaly maps."
-        },
-        "added_params_M": {
-          "higher_is_better": false,
-          "coefficient": -0.15,
-          "description": "Added trainable parameter count penalizes methods that buy accuracy with a much larger filtering module."
-        },
-        "added_flops_G": {
-          "higher_is_better": false,
-          "coefficient": -0.2,
-          "description": "Added per-image computational cost in GFLOPs penalizes methods that buy accuracy with much heavier filtering."
-        },
-        "image_ap": {
-          "higher_is_better": true,
-          "coefficient": 0.35,
-          "description": "Image-level average precision rewards ranking anomalous images above normal images under class imbalance."
-        },
-        "image_f1_max": {
-          "higher_is_better": true,
-          "coefficient": 0.25,
-          "description": "Best image-level F1 over thresholds checks whether detection scores can support a usable operating point."
-        },
-        "pixel_ap": {
-          "higher_is_better": true,
-          "coefficient": 0.25,
-          "description": "Pixel-level average precision rewards precise anomaly localization when anomalous pixels are sparse."
-        },
-        "pixel_f1_max": {
-          "higher_is_better": true,
-          "coefficient": 0.3,
-          "description": "Best pixel-level F1 over thresholds checks whether localization maps can support a usable segmentation threshold."
+          "description": "Pixel-level AUROC (%) of the 224x224 anomaly maps over all pixels of the scored images."
         },
         "pixel_aupro": {
           "higher_is_better": true,
-          "coefficient": 0.4,
-          "description": "Per-region overlap at low false-positive rates measures anomaly localization quality beyond pixelwise ranking."
+          "coefficient": 0.6,
+          "description": "Area under the per-region-overlap curve up to 30% pixel false-positive rate (%), normalised; every connected defect region counts equally, so small defects matter."
         },
-        "pixel_aupro_5pct": {
+        "pixel_ap": {
           "higher_is_better": true,
-          "coefficient": 0.25,
-          "description": "AUPRO at a stricter 5% false-positive-rate cap catches broad heatmaps that localize defects only by flooding normal pixels."
+          "coefficient": 0.5,
+          "description": "Pixel-level average precision (%) of the anomaly maps; sensitive to false positives because defect pixels are rare."
         },
-        "category_mean_image_auroc": {
+        "image_ap": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "Image-level average precision (%) of the per-image anomaly score."
+        },
+        "pixel_f1_max": {
+          "higher_is_better": true,
+          "coefficient": 0.4,
+          "description": "Best pixel-level F1 (%) over all thresholds of the anomaly maps."
+        },
+        "image_f1_max": {
           "higher_is_better": true,
           "coefficient": 0.3,
-          "description": "Unweighted category-mean image AUROC catches methods that improve only the easiest or most common categories."
-        },
-        "category_mean_pixel_auroc": {
-          "higher_is_better": true,
-          "coefficient": 0.4,
-          "description": "Unweighted category-mean pixel AUROC checks that localization gains transfer across object and texture categories."
+          "description": "Best image-level F1 (%) over all thresholds of the image score."
         }
       },
       "results": {
         "anomaldf": {
           "type": "baseline",
           "image_auroc": 96.8,
-          "pixel_auroc": 98.1,
-          "added_params_M": 0.0,
-          "added_flops_G": 0.0
+          "pixel_auroc": 98.1
         },
         "anomaldf_ucf": {
           "type": "proposed",
           "image_auroc": 98.5,
-          "pixel_auroc": 98.8,
-          "added_params_M": 43.8,
-          "added_flops_G": 32.7
+          "pixel_auroc": 98.8
         }
       }
     }

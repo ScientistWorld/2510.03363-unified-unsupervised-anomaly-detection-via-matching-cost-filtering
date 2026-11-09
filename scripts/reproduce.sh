@@ -1,8 +1,12 @@
 #!/bin/bash
+# Reproduce the reference end to end (after scripts/download.sh): data
+# preparation, AnomalDF baseline, AnomalDF+UCF training, and both evaluations.
 set -euo pipefail
-
-cd /home/user
-bash scripts/method.sh
-bash scripts/evaluate_train.sh outputs/ucf_synthetic/predictions.npz
-bash scripts/evaluate_test.sh outputs/ucf_synthetic/predictions.npz
-python validate.py --compare
+cd "$(dirname "$0")/.."
+bash scripts/prepare_data.sh
+bash scripts/baseline.sh
+SEED=0 bash scripts/method.sh
+bash scripts/evaluate_train.sh
+bash scripts/evaluate_test.sh
+bash scripts/evaluate.sh
+python validate.py --compare --post-design
