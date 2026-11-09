@@ -1,0 +1,14 @@
+{
+  "case": "better_normal_calibration",
+  "config": {
+    "kind": "normal_calibration"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 37.64263439178467,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}

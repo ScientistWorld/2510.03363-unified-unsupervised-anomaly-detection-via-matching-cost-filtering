@@ -1,0 +1,448 @@
+{
+  "selected": {
+    "patch_width": 3,
+    "smoothing": 1,
+    "calibration_fraction": 0.75,
+    "topk": 16,
+    "visible_train_objective": 2.2895468660200287,
+    "visible_train_pixel_auroc": 98.94957990225177,
+    "visible_train_image_auroc": 100.0
+  },
+  "candidates": [
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 1,
+      "visible_train_objective": 1.8669984601589125,
+      "visible_train_pixel_auroc": 91.90148792791003,
+      "visible_train_image_auroc": 74.07407407407408
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 16,
+      "visible_train_objective": 1.9180983790297892,
+      "visible_train_pixel_auroc": 91.90148792791003,
+      "visible_train_image_auroc": 79.01234567901234
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 64,
+      "visible_train_objective": 1.931170101339083,
+      "visible_train_pixel_auroc": 91.90148792791003,
+      "visible_train_image_auroc": 80.0
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 250,
+      "visible_train_objective": 1.928853501214945,
+      "visible_train_pixel_auroc": 91.90148792791003,
+      "visible_train_image_auroc": 80.0
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 1,
+      "visible_train_objective": 2.104843006877581,
+      "visible_train_pixel_auroc": 98.22082419177272,
+      "visible_train_image_auroc": 84.44444444444444
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 16,
+      "visible_train_objective": 2.173631827864968,
+      "visible_train_pixel_auroc": 98.22082419177272,
+      "visible_train_image_auroc": 91.60493827160494
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 64,
+      "visible_train_objective": 2.2139911322261527,
+      "visible_train_pixel_auroc": 98.22082419177272,
+      "visible_train_image_auroc": 95.80246913580247
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 250,
+      "visible_train_objective": 2.187758278934061,
+      "visible_train_pixel_auroc": 98.22082419177272,
+      "visible_train_image_auroc": 93.08641975308642
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 1,
+      "visible_train_objective": 2.2652229255754914,
+      "visible_train_pixel_auroc": 98.94957990225177,
+      "visible_train_image_auroc": 97.53086419753087
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 16,
+      "visible_train_objective": 2.2895468660200287,
+      "visible_train_pixel_auroc": 98.94957990225177,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 64,
+      "visible_train_objective": 2.2895468660200287,
+      "visible_train_pixel_auroc": 98.94957990225177,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 250,
+      "visible_train_objective": 2.2749742164473794,
+      "visible_train_pixel_auroc": 98.94957990225177,
+      "visible_train_image_auroc": 98.51851851851853
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 1,
+      "visible_train_objective": 1.96404083473065,
+      "visible_train_pixel_auroc": 92.08768497768109,
+      "visible_train_image_auroc": 82.71604938271605
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 16,
+      "visible_train_objective": 2.001034689815557,
+      "visible_train_pixel_auroc": 92.08768497768109,
+      "visible_train_image_auroc": 86.41975308641975
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 64,
+      "visible_train_objective": 1.982859732136695,
+      "visible_train_pixel_auroc": 92.08768497768109,
+      "visible_train_image_auroc": 84.69135802469135
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 250,
+      "visible_train_objective": 1.9677832412391099,
+      "visible_train_pixel_auroc": 92.08768497768109,
+      "visible_train_image_auroc": 83.20987654320989
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 1,
+      "visible_train_objective": 2.2131123403882995,
+      "visible_train_pixel_auroc": 98.53352570925,
+      "visible_train_image_auroc": 95.55555555555556
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 16,
+      "visible_train_objective": 2.237550013538724,
+      "visible_train_pixel_auroc": 98.53352570925,
+      "visible_train_image_auroc": 98.0246913580247
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 64,
+      "visible_train_objective": 2.249753409782989,
+      "visible_train_pixel_auroc": 98.53352570925,
+      "visible_train_image_auroc": 99.25925925925925
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 250,
+      "visible_train_objective": 2.2300417245920294,
+      "visible_train_pixel_auroc": 98.53352570925,
+      "visible_train_image_auroc": 97.28395061728395
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 1,
+      "visible_train_objective": 2.2778726431936343,
+      "visible_train_pixel_auroc": 99.01482201087313,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 16,
+      "visible_train_objective": 2.2778726431936343,
+      "visible_train_pixel_auroc": 99.01482201087313,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 64,
+      "visible_train_objective": 2.2778726431936343,
+      "visible_train_pixel_auroc": 99.01482201087313,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 3,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 250,
+      "visible_train_objective": 2.2730280284639623,
+      "visible_train_pixel_auroc": 99.01482201087313,
+      "visible_train_image_auroc": 99.50617283950618
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 1,
+      "visible_train_objective": 1.937547790494,
+      "visible_train_pixel_auroc": 92.23228019068489,
+      "visible_train_image_auroc": 80.98765432098764
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 16,
+      "visible_train_objective": 1.9710758561782364,
+      "visible_train_pixel_auroc": 92.23228019068489,
+      "visible_train_image_auroc": 83.7037037037037
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 64,
+      "visible_train_objective": 1.9875129161373082,
+      "visible_train_pixel_auroc": 92.23228019068489,
+      "visible_train_image_auroc": 85.4320987654321
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.25,
+      "topk": 250,
+      "visible_train_objective": 1.9561665997150166,
+      "visible_train_pixel_auroc": 92.23228019068489,
+      "visible_train_image_auroc": 82.46913580246913
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 1,
+      "visible_train_objective": 2.1636626232677956,
+      "visible_train_pixel_auroc": 98.09142127187764,
+      "visible_train_image_auroc": 92.8395061728395
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 16,
+      "visible_train_objective": 2.2007855658837405,
+      "visible_train_pixel_auroc": 98.09142127187764,
+      "visible_train_image_auroc": 96.54320987654322
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 64,
+      "visible_train_objective": 2.2175613190229195,
+      "visible_train_pixel_auroc": 98.09142127187764,
+      "visible_train_image_auroc": 98.27160493827161
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.5,
+      "topk": 250,
+      "visible_train_objective": 2.200351588844253,
+      "visible_train_pixel_auroc": 98.09142127187764,
+      "visible_train_image_auroc": 96.54320987654322
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 1,
+      "visible_train_objective": 2.2496377258446554,
+      "visible_train_pixel_auroc": 98.70825525416372,
+      "visible_train_image_auroc": 99.25925925925925
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 16,
+      "visible_train_objective": 2.257005299971488,
+      "visible_train_pixel_auroc": 98.70825525416372,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 64,
+      "visible_train_objective": 2.257005299971488,
+      "visible_train_pixel_auroc": 98.70825525416372,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 1,
+      "calibration_fraction": 0.75,
+      "topk": 250,
+      "visible_train_objective": 2.2496377258446554,
+      "visible_train_pixel_auroc": 98.70825525416372,
+      "visible_train_image_auroc": 99.25925925925925
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 1,
+      "visible_train_objective": 1.9877180277220887,
+      "visible_train_pixel_auroc": 92.11717026968365,
+      "visible_train_image_auroc": 85.92592592592592
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 16,
+      "visible_train_objective": 1.9973728696021482,
+      "visible_train_pixel_auroc": 92.11717026968365,
+      "visible_train_image_auroc": 86.66666666666666
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 64,
+      "visible_train_objective": 2.0042801607147442,
+      "visible_train_pixel_auroc": 92.11717026968365,
+      "visible_train_image_auroc": 87.4074074074074
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.25,
+      "topk": 250,
+      "visible_train_objective": 1.9954058134636365,
+      "visible_train_pixel_auroc": 92.11717026968365,
+      "visible_train_image_auroc": 86.66666666666667
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 1,
+      "visible_train_objective": 2.200993150461716,
+      "visible_train_pixel_auroc": 97.9701831275774,
+      "visible_train_image_auroc": 97.28395061728395
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 16,
+      "visible_train_objective": 2.2156280353775997,
+      "visible_train_pixel_auroc": 97.9701831275774,
+      "visible_train_image_auroc": 98.76543209876544
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 64,
+      "visible_train_objective": 2.220637294636859,
+      "visible_train_pixel_auroc": 97.9701831275774,
+      "visible_train_image_auroc": 99.25925925925925
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.5,
+      "topk": 250,
+      "visible_train_objective": 2.210682776525544,
+      "visible_train_pixel_auroc": 97.9701831275774,
+      "visible_train_image_auroc": 98.27160493827161
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 1,
+      "visible_train_objective": 2.245553463148241,
+      "visible_train_pixel_auroc": 98.49348972702147,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 16,
+      "visible_train_objective": 2.245553463148241,
+      "visible_train_pixel_auroc": 98.49348972702147,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 64,
+      "visible_train_objective": 2.245553463148241,
+      "visible_train_pixel_auroc": 98.49348972702147,
+      "visible_train_image_auroc": 100.0
+    },
+    {
+      "patch_width": 5,
+      "smoothing": 3,
+      "calibration_fraction": 0.75,
+      "topk": 250,
+      "visible_train_objective": 2.2431151915433025,
+      "visible_train_pixel_auroc": 98.49348972702147,
+      "visible_train_image_auroc": 99.75308641975309
+    }
+  ],
+  "training": "108 normal train images only; original RGB guide source and UCF retained",
+  "extra_params_M": 0.002274,
+  "extra_flops_G": 0.003654144
+}

@@ -1,4 +1,4 @@
 action: submit
 gpus: 0
 test: false
-notes: "Run bundled gym audit: 3 reference seeds, longer training and calibration, weaker controls, and 12 shortcut payloads through unchanged no-argument hidden test."
+notes: "Reuse completed audit runs; test a genuine normal-only RGB guide calibration added to UCF, plus chance-level image detection with forged resource claims. Recompute normalized audit ranks."

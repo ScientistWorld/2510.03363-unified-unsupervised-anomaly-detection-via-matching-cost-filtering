@@ -1,0 +1,14 @@
+{
+  "case": "failed_detection_resource_shortcut",
+  "config": {
+    "kind": "failed_detection_resource_shortcut"
+  },
+  "returncode": 0,
+  "train_returncode": 0,
+  "elapsed_seconds": 10.190117359161377,
+  "test_command": [
+    "bash",
+    "scripts/evaluate_test.sh"
+  ],
+  "evaluator_environment": "unchanged; separate process after submitter exits"
+}
