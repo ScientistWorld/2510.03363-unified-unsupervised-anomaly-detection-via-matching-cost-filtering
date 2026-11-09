@@ -19,6 +19,8 @@ python -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 'CUDA
 
 [ -f outputs/anomaldf/predictions.npz ] || bash scripts/baseline.sh
 echo "== baseline done at $((SECONDS - T0))s"
+[ -f method/ucf_setup.json ] || python -m method.select_setup
+echo "== training setup selected on the dev slice at $((SECONDS - T0))s"
 [ -f outputs/anomaldf_ucf/predictions.npz ] || SEED=0 bash scripts/method.sh
 echo "== reference UCF done at $((SECONDS - T0))s"
 

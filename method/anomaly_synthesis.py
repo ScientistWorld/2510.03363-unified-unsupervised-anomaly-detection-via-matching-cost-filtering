@@ -124,16 +124,25 @@ class AnomalySynthesizer:
         noise = F.interpolate(noise[None], size=(size, size), mode="bilinear", align_corners=False)[0, 0]
         return (noise > PERLIN_THRESHOLD).float()
 
-    def __call__(self, images: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """images (B,3,H,W) in [0,1] -> (augmented images, masks (B,H,W) in {0,1})."""
+    def __call__(self, images: torch.Tensor, foreground: torch.Tensor | None = None) -> tuple[torch.Tensor, torch.Tensor]:
+        """images (B,3,H,W) in [0,1] -> (augmented images, masks (B,H,W) in {0,1}).
+
+        foreground: optional (B,H,W) {0,1}; anomalies are restricted to it
+        (object categories), retrying the Perlin draw up to 4 times.
+        """
         out = images.clone()
         b, _, h, w = images.shape
         masks = torch.zeros(b, h, w, device=images.device)
         for i in range(b):
             if self.rng.random() >= ANOMALY_PROB:
                 continue
-            mask = self._mask(h)
-            if mask.sum() < 1:
+            for _attempt in range(4):
+                mask = self._mask(h)
+                if foreground is not None:
+                    mask = mask * foreground[i]
+                if mask.sum() >= 16:
+                    break
+            if mask.sum() < 16:
                 continue
             if self.rng.random() < 0.5:
                 k = int(self.rng.integers(0, self.textures.shape[0]))

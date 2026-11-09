@@ -40,7 +40,11 @@ score_all() {
 step ucf_tta4 python -m method.train_ucf --predict-only --checkpoint checkpoints/anomaldf_ucf_seed0.pt --test-draws 4 --output "$OUT/ucf_tta4"
 step ucf_nearest_templates python -m method.train_ucf --predict-only --checkpoint checkpoints/anomaldf_ucf_seed0.pt --test-templates nearest --output "$OUT/ucf_nearest_templates"
 step knn_fullshot python -m baseline.anomaldf --templates all --output "$OUT/knn_fullshot"
-step ucf_1epoch python -m method.train_ucf --epochs 1 --output "$OUT/ucf_1epoch" --checkpoint checkpoints/anomaldf_ucf_1epoch.pt
+E=$(python -c "import json; print(json.load(open('method/ucf_setup.json'))['epochs'])")
+if [ "$E" -ge 4 ]; then
+  step ucf_quarter_epochs python -m method.train_ucf --epochs $((E / 4)) --output "$OUT/ucf_quarter_epochs" --checkpoint checkpoints/anomaldf_ucf_quarter_epochs.pt
+fi
+step ucf_tenth_data python -m method.train_ucf --train-fraction 0.1 --output "$OUT/ucf_tenth_data" --checkpoint checkpoints/anomaldf_ucf_tenth_data.pt
 python -m redteam.hardening.shortcuts || echo "!! shortcuts failed"
 step shortcut_dev_supervised python -m redteam.hardening.dev_supervised_shortcut
 score_all

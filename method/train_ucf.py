@@ -1,11 +1,17 @@
 """Train AnomalDF+UCF on MVTec-AD normal images and write test predictions.
 
-Training (paper Sec. III-G, S4-A/B): 40 epochs, batch 8, Adam with a
-ReduceLROnPlateau scheduler, loss
+Training (paper Sec. III-G, S4-A/B): batch 8, Adam with a ReduceLROnPlateau
+scheduler, loss
     L = Focal(M, M_s, gamma(sigmoid(y_c))) + CE(y_c, Y) + alpha * (SoftIoU + SSIM),  alpha = 0.1, gamma0 = 3,
-on Perlin-noise synthetic anomalies. N = 3 same-category templates are drawn
-at random per input (training and testing). The image score is the mean of
-the top-250 anomaly-map values.
+on Perlin-noise synthetic anomalies (restricted to the object foreground for
+object categories, GLAD-style). N = 3 same-category templates are drawn at
+random per input (training and testing). The image score is the mean of the
+top-250 anomaly probabilities.
+
+Setup defaults (epochs, learning rate, foreground restriction) come from
+method/ucf_setup.json, written by method/select_setup.py, which chooses them
+on the visible development slice only. Without that file the paper defaults
+apply (40 epochs, lr 1e-3, foreground restriction on).
 
 Usage:
   python -m method.train_ucf --output outputs/anomaldf_ucf --checkpoint checkpoints/anomaldf_ucf_seed0.pt --seed 0
@@ -25,12 +31,23 @@ import torch.nn.functional as F
 from data.mvtec import CATEGORIES, IMAGE_SIZE, load_test_inputs, load_textures, load_train, write_predictions
 from method.anomaly_synthesis import AnomalySynthesizer
 from method.backbone import DinoFeatures, to_float_images
+from method.foreground import foreground_masks
 from method.templates import category_index, nearest_templates, test_templates, train_templates
 from method.ucf_model import ARCH_VERSION, UCFNet, build_cost_volume, topk_mean
 
 GRID = 16  # 224 / 14 patch grid
 TOPK = 250
-RESUME_KEYS = ("templates", "no_guidance", "seed", "lr", "batch_size", "alpha", "gamma0")
+RESUME_KEYS = ("templates", "no_guidance", "seed", "lr", "batch_size", "alpha", "gamma0", "fg_restrict", "train_fraction")
+SETUP_FILE = Path(__file__).resolve().parent / "ucf_setup.json"
+PAPER_SETUP = {"epochs": 40, "lr": 1e-3, "fg_restrict": True}
+
+
+def load_setup() -> dict:
+    setup = dict(PAPER_SETUP)
+    if SETUP_FILE.exists():
+        chosen = json.loads(SETUP_FILE.read_text())
+        setup.update({k: chosen[k] for k in PAPER_SETUP if k in chosen})
+    return setup
 
 
 def focal_loss(logits: torch.Tensor, target: torch.Tensor, gamma: torch.Tensor) -> torch.Tensor:
@@ -97,6 +114,20 @@ def train(args, device, backbone, cache, train_images, train_cats_np, index) -> 
     synth = AnomalySynthesizer(torch.from_numpy(load_textures()).to(device), seed=args.seed + 1)
     torch.manual_seed(args.seed)
     train_cats = torch.from_numpy(train_cats_np).long().to(device)
+    fg_small = None
+    if args.fg_restrict:
+        fg_small, fg_stats = foreground_masks(cache[:, -1], train_cats_np, CATEGORIES)
+        print("foreground masks: " + json.dumps(fg_stats), flush=True)
+    queries = np.arange(len(train_cats_np))
+    if args.train_fraction < 1.0:
+        sub_rng = np.random.default_rng(args.seed + 7)
+        keep = []
+        for c in np.unique(train_cats_np):
+            pool = np.flatnonzero(train_cats_np == c)
+            keep.append(sub_rng.choice(pool, size=max(1, int(round(args.train_fraction * len(pool)))), replace=False))
+        queries = np.sort(np.concatenate(keep))
+        print(f"training queries: {len(queries)} of {len(train_cats_np)} images", flush=True)
+    snapshots = {int(e) for e in args.snapshot_epochs.split(",") if e.strip()} if args.snapshot_epochs else set()
     start = 1
     if args.checkpoint.exists():
         state = torch.load(args.checkpoint, map_location=device, weights_only=False)
@@ -111,18 +142,21 @@ def train(args, device, backbone, cache, train_images, train_cats_np, index) -> 
         else:
             print("checkpoint config differs; training from scratch", flush=True)
     args.checkpoint.parent.mkdir(parents=True, exist_ok=True)
-    n = len(train_cats_np)
+    n = len(queries)
     for epoch in range(start, args.epochs + 1):
         model.train()
         t0 = time.time()
-        perm = rng.permutation(n)
+        perm = queries[rng.permutation(n)]
         total = torch.zeros((), device=device)
         steps = 0
         for s in range(0, n, args.batch_size):
             idx = perm[s:s + args.batch_size]
             idx_t = torch.as_tensor(idx, device=device)
             images = to_float_images(train_images[idx_t])
-            aug, masks = synth(images)
+            fg = None
+            if fg_small is not None:
+                fg = F.interpolate(fg_small[idx_t].float()[:, None], size=images.shape[-2:], mode="nearest")[:, 0]
+            aug, masks = synth(images, fg)
             q = backbone(aug)
             t_idx = np.stack([train_templates(index, train_cats_np[i], args.templates, rng, exclude=int(i)) for i in idx])
             volume, initial = build_cost_volume(q, gather_templates(cache, t_idx))
@@ -157,11 +191,19 @@ def train(args, device, backbone, cache, train_images, train_cats_np, index) -> 
         torch.save(state, tmp)
         tmp.replace(args.checkpoint)
         print(f"epoch={epoch} loss={mean_loss:.4f} lr={opt.param_groups[0]['lr']:.2e} time={time.time() - t0:.0f}s", flush=True)
+        if epoch in snapshots and epoch < args.epochs:
+            snap_ckpt = args.checkpoint.with_name(f"{args.checkpoint.stem}_e{epoch}.pt")
+            torch.save(state, snap_ckpt)
+            snap_out = args.output.with_name(f"{args.output.name}_e{epoch}")
+            if not (snap_out / "predictions.npz").exists():
+                predict(args, device, model, backbone, cache, train_cats_np, index, output=snap_out, epoch=epoch)
     return model
 
 
 @torch.no_grad()
-def predict(args, device, model, backbone, cache, train_cats_np, index) -> None:
+def predict(args, device, model, backbone, cache, train_cats_np, index, output: Path | None = None, epoch: int | None = None) -> None:
+    output = args.output if output is None else output
+    epoch = args.epochs if epoch is None else epoch
     model.eval()
     images, cats, ids = load_test_inputs()
     m = len(ids)
@@ -190,7 +232,7 @@ def predict(args, device, model, backbone, cache, train_cats_np, index) -> None:
         # without float32 saturation ties at p = 1
         maps[s:s + bs] = torch.log(prob.clamp_min(1e-300)).float().cpu().numpy()
         scores[s:s + bs] = topk_mean(prob, TOPK).float().cpu().numpy()
-    path = write_predictions(args.output, ids, scores, maps)
+    path = write_predictions(output, ids, scores, maps)
     meta = {
         "method": "AnomalDF+UCF (cost-volume filtering)",
         "backbone": "DINOv2 ViT-S/14, blocks 3/6/9/12, 224px",
@@ -200,21 +242,25 @@ def predict(args, device, model, backbone, cache, train_cats_np, index) -> None:
         "template_seed": args.template_seed,
         "guidance": not args.no_guidance,
         "seed": args.seed,
-        "epochs": args.epochs,
+        "epochs": epoch,
+        "lr": args.lr,
+        "fg_restrict": args.fg_restrict,
+        "train_fraction": args.train_fraction,
         "image_score": f"mean of top-{TOPK} anomaly probabilities",
         "anomaly_maps": "log of the anomaly probability (softmax output)",
         "arch_version": ARCH_VERSION,
         "trainable_params_M": sum(p.numel() for p in model.parameters()) / 1e6,
     }
-    (args.output / "metadata.json").write_text(json.dumps(meta, indent=2))
+    (output / "metadata.json").write_text(json.dumps(meta, indent=2))
     print(f"wrote {path}", flush=True)
 
 
 def main() -> None:
+    setup = load_setup()
     p = argparse.ArgumentParser()
-    p.add_argument("--epochs", type=int, default=40)
+    p.add_argument("--epochs", type=int, default=setup["epochs"])
     p.add_argument("--batch-size", type=int, default=8)
-    p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--lr", type=float, default=setup["lr"])
     p.add_argument("--alpha", type=float, default=0.1)
     p.add_argument("--gamma0", type=float, default=3.0)
     p.add_argument("--templates", type=int, default=3)
@@ -225,6 +271,10 @@ def main() -> None:
     p.add_argument("--test-draws", type=int, default=1, help="random template draws averaged at test time")
     p.add_argument("--test-templates", choices=("random", "nearest"), default="random")
     p.add_argument("--template-seed", type=int, default=2026)
+    p.add_argument("--fg-restrict", dest="fg_restrict", action="store_true", default=setup["fg_restrict"])
+    p.add_argument("--no-fg-restrict", dest="fg_restrict", action="store_false")
+    p.add_argument("--train-fraction", type=float, default=1.0, help="fraction of normal training images used as queries")
+    p.add_argument("--snapshot-epochs", default="", help="comma list: also save + predict at these epochs (<output>_e<k>)")
     p.add_argument("--predict-only", action="store_true")
     p.add_argument("--allow-cpu", action="store_true")
     args = p.parse_args()

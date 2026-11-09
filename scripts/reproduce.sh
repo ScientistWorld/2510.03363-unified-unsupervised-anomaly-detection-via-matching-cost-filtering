@@ -5,6 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 bash scripts/prepare_data.sh
 bash scripts/baseline.sh
+[ -f method/ucf_setup.json ] || python -m method.select_setup  # dev-slice setup selection (committed result)
 SEED=0 bash scripts/method.sh
 bash scripts/evaluate_train.sh
 bash scripts/evaluate_test.sh
