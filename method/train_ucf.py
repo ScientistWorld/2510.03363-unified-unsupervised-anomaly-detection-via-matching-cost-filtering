@@ -26,7 +26,7 @@ from data.mvtec import CATEGORIES, IMAGE_SIZE, load_test_inputs, load_textures, 
 from method.anomaly_synthesis import AnomalySynthesizer
 from method.backbone import DinoFeatures, to_float_images
 from method.templates import category_index, nearest_templates, test_templates, train_templates
-from method.ucf_model import UCFNet, build_cost_volume, topk_mean
+from method.ucf_model import ARCH_VERSION, UCFNet, build_cost_volume, topk_mean
 
 GRID = 16  # 224 / 14 patch grid
 TOPK = 250
@@ -86,7 +86,7 @@ def build_model(args, device: torch.device) -> UCFNet:
 
 
 def config_of(args) -> dict:
-    return {k: getattr(args, k) for k in RESUME_KEYS}
+    return {"arch": ARCH_VERSION, **{k: getattr(args, k) for k in RESUME_KEYS}}
 
 
 def train(args, device, backbone, cache, train_images, train_cats_np, index) -> UCFNet:
@@ -173,7 +173,7 @@ def predict(args, device, model, backbone, cache, train_cats_np, index) -> None:
         rows = range(s, min(s + bs, m))
         x = to_float_images(torch.from_numpy(images[s:s + bs]).to(device))
         q = backbone(x)
-        acc = torch.zeros(x.shape[0], IMAGE_SIZE, IMAGE_SIZE, device=device)
+        acc = torch.zeros(x.shape[0], IMAGE_SIZE, IMAGE_SIZE, device=device, dtype=torch.float64)
         draws = 1 if args.test_templates == "nearest" else args.test_draws
         for draw in range(draws):
             if args.test_templates == "nearest":
@@ -184,10 +184,12 @@ def predict(args, device, model, backbone, cache, train_cats_np, index) -> None:
             volume, initial = build_cost_volume(q, gather_templates(cache, t_idx))
             logits, _ = model(volume, initial, q)
             logits = F.interpolate(logits, size=(IMAGE_SIZE, IMAGE_SIZE), mode="bilinear", align_corners=False)
-            acc += logits.softmax(dim=1)[:, 1]
+            acc += logits.double().softmax(dim=1)[:, 1]
         prob = acc / draws
-        maps[s:s + bs] = prob.cpu().numpy()
-        scores[s:s + bs] = topk_mean(prob, TOPK).cpu().numpy()
+        # maps are stored as log-probabilities: same ranking as the probability,
+        # without float32 saturation ties at p = 1
+        maps[s:s + bs] = torch.log(prob.clamp_min(1e-300)).float().cpu().numpy()
+        scores[s:s + bs] = topk_mean(prob, TOPK).float().cpu().numpy()
     path = write_predictions(args.output, ids, scores, maps)
     meta = {
         "method": "AnomalDF+UCF (cost-volume filtering)",
@@ -199,7 +201,9 @@ def predict(args, device, model, backbone, cache, train_cats_np, index) -> None:
         "guidance": not args.no_guidance,
         "seed": args.seed,
         "epochs": args.epochs,
-        "image_score": f"mean of top-{TOPK} anomaly-map values",
+        "image_score": f"mean of top-{TOPK} anomaly probabilities",
+        "anomaly_maps": "log of the anomaly probability (softmax output)",
+        "arch_version": ARCH_VERSION,
         "trainable_params_M": sum(p.numel() for p in model.parameters()) / 1e6,
     }
     (args.output / "metadata.json").write_text(json.dumps(meta, indent=2))

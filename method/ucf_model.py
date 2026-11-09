@@ -12,14 +12,19 @@ Pipeline (paper Sec. III-D..F):
      projected initial map h(M);
   4. class-aware adaptor: pooled deepest features -> category logits that
      modulate the focal-loss focusing parameter;
-  5. a 3D conv reduces depth L -> 1, global min pooling over the filtered
-     matching channels, a conv and a softmax give the normal/anomaly map.
+  5. the last decoder layer is a 3D conv that reduces depth L -> 1 and
+     returns the filtered cost volume in the matching dimension (D*N
+     channels), as a residual correction of the input (last-layer) costs;
+     global min pooling along the matching dimension, a conv and a softmax
+     give the normal/anomaly map: M = softmax(conv(min(x))).
 """
 from __future__ import annotations
 
 import torch
 import torch.nn.functional as F
 from torch import nn
+
+ARCH_VERSION = 2  # 2: filtered volume keeps the D*N matching channels (residual on the input costs)
 
 
 def build_cost_volume(query_feats: list[torch.Tensor], template_feats: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
@@ -99,7 +104,10 @@ class UCFNet(nn.Module):
         self.classifier = nn.Linear(w2, num_classes)  # class-aware adaptor
         self.up1 = ConvBlock3d(w2 + w1, w1)
         self.up0 = ConvBlock3d(w1 + w0, w0)
-        self.reduce_depth = nn.Conv3d(w0, w0, kernel_size=(depth, 1, 1))  # L -> 1
+        # L -> 1, back to the D*N matching channels; zero init = start from the raw costs
+        self.refine = nn.Conv3d(w0, match_channels, kernel_size=(depth, 1, 1))
+        nn.init.zeros_(self.refine.weight)
+        nn.init.zeros_(self.refine.bias)
         self.head = nn.Conv2d(1, 2, kernel_size=3, padding=1)
 
     def _guides(self, gm, gf, size):
@@ -123,8 +131,8 @@ class UCFNet(nn.Module):
         u1 = self.up1(torch.cat([u1, x1], dim=1))
         u0 = F.interpolate(u1, size=x0.shape[-3:], mode="trilinear", align_corners=False)
         u0 = self.up0(torch.cat([u0, x0], dim=1))
-        filtered = self.reduce_depth(u0)[:, :, 0]  # (B, w0, H, W) filtered matching channels
-        pooled = filtered.amin(dim=1, keepdim=True)  # global min pooling over matching channels
+        filtered = volume[:, :, -1] + self.refine(u0)[:, :, 0]  # (B, D*N, H, W) filtered cost volume
+        pooled = filtered.amin(dim=1, keepdim=True)  # global min pooling along the matching dimension
         logits = self.head(pooled)
         return logits, cls
 
