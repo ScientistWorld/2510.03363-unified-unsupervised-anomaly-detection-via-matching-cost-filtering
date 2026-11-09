@@ -128,6 +128,10 @@ def prepare(name, cfg):
         save_artifact(folder, reference_artifact())
         tune_visible_train(folder)
         return
+    if kind == 'normal_calibration':
+        from redteam.normal_calibration import main
+        main(folder)
+        return
     if kind == 'ground_truth_shortcut':
         # Shortcut: an arbitrary fixture supplies both predictions and answers.
         # No actual data or real masks are needed for a perfect self-graded score.
@@ -156,6 +160,10 @@ def prepare(name, cfg):
         arrays['added_flops_G'][:] = -1e6
     elif kind == 'failed_task_negative_shortcut':
         arrays['fused_maps'][:] = 0
+        arrays['fused_scores'][:] = 0
+        arrays['added_params_M'][:] = -1e6
+        arrays['added_flops_G'][:] = -1e6
+    elif kind == 'failed_detection_resource_shortcut':
         arrays['fused_scores'][:] = 0
         arrays['added_params_M'][:] = -1e6
         arrays['added_flops_G'][:] = -1e6
