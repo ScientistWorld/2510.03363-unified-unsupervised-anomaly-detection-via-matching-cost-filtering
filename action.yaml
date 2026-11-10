@@ -1,7 +1,8 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: submit
-gpus: 1
+action: pending
+gpus: 0
 test: false
-notes: "Final hardening check: AnomalDF baseline, dev-slice setup selection (4 lr/foreground runs x epoch snapshots) with the paper's fused inference (lambda=0.5), reference AnomalDF+UCF seed 0, class-mean train/test scoring, then the study (seeds 1-2, ensemble/nearest better variants, no-guidance/focal-only/tenth-data/quarter-epoch weaker variants, lambda sweep, full-bank brute force, shortcut payloads) and validate."
+milestone: core_claim_plus
+notes: ""
