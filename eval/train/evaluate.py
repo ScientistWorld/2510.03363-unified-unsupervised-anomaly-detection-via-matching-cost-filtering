@@ -22,9 +22,12 @@ therefore unaffected by how scores are scaled from one category to another.
 
 A run is scored as failed - every metric set to 0, its worst value - when the
 artifact is missing or unreadable, does not cover the full id set exactly
-once, has the wrong shape or dtype, contains non-finite values, or does not
-solve both halves of the task (class-mean image AUROC or pixel AUROC below
-TASK_GATE; chance is 50).
+once, declares or has the wrong shape or dtype (shapes are checked from the
+array headers before any data is read), contains non-finite values, or does
+not solve both halves of the task (class-mean image AUROC or pixel AUROC below
+TASK_GATE; chance is 50). Scoring one artifact never stops the others: when
+two directories sanitise to the same method key, the directory literally named
+after the key keeps it and the other is scored as '<key>__dup<k>'.
 """
 from __future__ import annotations
 
@@ -34,6 +37,7 @@ import re
 from pathlib import Path
 
 import numpy as np
+from numpy.lib import format as npy_format
 
 from eval.train.metrics import auroc, image_metrics, pixel_metrics
 
@@ -78,6 +82,20 @@ def failed(reason: str, diag: dict | None = None) -> tuple[dict[str, float], str
     return {m: 0.0 for m in METRICS}, f"failed: {reason}", diag or {}
 
 
+def member_shape(data: np.lib.npyio.NpzFile, key: str) -> tuple[int, ...]:
+    """Shape declared in an .npz member's header, read without loading its data."""
+    try:
+        with data.zip.open(f"{key}.npy") as fh:
+            version = npy_format.read_magic(fh)
+            if version == (1, 0):
+                shape, _, _ = npy_format.read_array_header_1_0(fh)
+            else:
+                shape, _, _ = npy_format.read_array_header_2_0(fh)
+    except Exception as exc:  # noqa: BLE001
+        raise ArtifactError(f"unreadable header of '{key}' ({type(exc).__name__})") from exc
+    return tuple(int(v) for v in shape)
+
+
 def load_artifact(path: Path, all_ids: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     if not path.is_file():
         raise ArtifactError("no predictions.npz")
@@ -91,6 +109,12 @@ def load_artifact(path: Path, all_ids: np.ndarray) -> tuple[np.ndarray, np.ndarr
         missing = [k for k in ("ids", "image_scores", "anomaly_maps") if k not in data.files]
         if missing:
             raise ArtifactError(f"missing arrays {missing}")
+        # Check declared shapes before reading any data: an oversized header can
+        # neither exhaust memory nor take down the scoring of other methods.
+        expected = {"ids": (all_ids.size,), "image_scores": (all_ids.size,), "anomaly_maps": (all_ids.size, MAP_SIZE, MAP_SIZE)}
+        for key, shape in expected.items():
+            if member_shape(data, key) != shape:
+                raise ArtifactError(f"{key} must have shape {shape} (one row per test input id)")
         try:
             ids = np.asarray(data["ids"])
             scores = np.asarray(data["image_scores"])
@@ -160,13 +184,31 @@ def score_artifact(path: Path, answers: dict[str, np.ndarray]) -> tuple[dict[str
     return result, "ok", diag
 
 
+def assign_names(paths: list[Path]) -> list[tuple[str, Path]]:
+    """One result key per artifact, never a crash. When several directories
+    sanitise to the same key, the directory literally named after the key
+    keeps it and the others are scored under '<key>__dup<k>'."""
+    groups: dict[str, list[Path]] = {}
+    for path in sorted(set(paths)):
+        groups.setdefault(method_name(path), []).append(path)
+    named, taken = [], set(groups)
+    for name, group in groups.items():
+        group.sort(key=lambda p: (p.parent.name != name, str(p)))
+        named.append((name, group[0]))
+        k = 0
+        for path in group[1:]:
+            k += 1
+            while f"{name}__dup{k}" in taken:
+                k += 1
+            taken.add(f"{name}__dup{k}")
+            named.append((f"{name}__dup{k}", path))
+    return sorted(named)
+
+
 def evaluate(paths: list[Path]) -> dict:
     answers = load_answers(ANSWERS)
     results, validity, diagnostics, sources = {}, {}, {}, {}
-    for path in sorted(paths):
-        name = method_name(path)
-        if name in results:
-            raise SystemExit(f"two artifacts map to method name '{name}'")
+    for name, path in assign_names(paths):
         metrics, status, diag = score_artifact(path, answers)
         results[name] = metrics
         validity[name] = status

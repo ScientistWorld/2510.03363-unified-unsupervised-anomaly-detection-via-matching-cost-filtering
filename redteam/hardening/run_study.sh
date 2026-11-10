@@ -1,7 +1,8 @@
 #!/bin/bash
 # Hardening study: training-seed noise, better and weaker variants, lambda
-# sensitivity, the full-memory-bank brute force, and shortcut payloads, all
-# scored by the unchanged evaluators (python -m eval.{train,test}.evaluate).
+# sensitivity, the full-memory-bank brute force, shortcut payloads and the
+# evaluation-contract checks (contract_checks.sh), all scored by the gym's
+# evaluators (python -m eval.{train,test}.evaluate).
 # Resumable: finished artifacts and score files are kept.
 # Requires the reference run (outputs/anomaldf, outputs/anomaldf_ucf,
 # checkpoints/anomaldf_ucf_seed0.pt, method/ucf_setup.json) to exist.
@@ -60,6 +61,7 @@ step fused_lam0p75 fused "$OUT/fused_lam0p75" 0.75 "$REF"
 step fused_lam0 fused "$OUT/fused_lam0" 0.0 "$REF"
 step knn_fullshot python -m baseline.anomaldf --templates all --output "$OUT/knn_fullshot"
 python -m redteam.hardening.shortcuts || echo "!! shortcuts failed"
+bash $H/contract_checks.sh || echo "!! contract checks failed"
 step shortcut_dev_supervised python -m redteam.hardening.dev_supervised_shortcut
 score_all
 

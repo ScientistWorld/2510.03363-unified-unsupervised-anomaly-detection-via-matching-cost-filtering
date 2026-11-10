@@ -2,8 +2,10 @@
 # Job entry point: prepare data, reproduce the reference end to end (AnomalDF
 # baseline, dev-slice setup selection, AnomalDF+UCF seed 0 with the paper's
 # fused inference), score it on both slices, then run the hardening study
-# (seeds, better/weaker variants, lambda sensitivity, brute force, shortcuts).
-# Every stage is resumable: finished artifacts are kept.
+# (seeds, better/weaker variants, lambda sensitivity, brute force, shortcuts,
+# evaluation-contract checks). Every stage is resumable: finished artifacts
+# are kept, so a rerun only rescores; CUDA is required only when something
+# has to be trained or predicted.
 set -euo pipefail
 cd /home/user
 
@@ -17,13 +19,15 @@ EOF
 T0=$SECONDS
 bash scripts/prepare_data.sh
 echo "== prepared data in $((SECONDS - T0))s"
-python -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 'CUDA unavailable: UCF training needs a GPU')"
+need_gpu() {  # UCF training/inference needs CUDA; scoring finished artifacts does not
+  python -c "import torch, sys; sys.exit(0 if torch.cuda.is_available() else 'CUDA unavailable: UCF training needs a GPU')"
+}
 
-[ -f outputs/anomaldf/predictions.npz ] || bash scripts/baseline.sh
+[ -f outputs/anomaldf/predictions.npz ] || { need_gpu; bash scripts/baseline.sh; }
 echo "== baseline done at $((SECONDS - T0))s"
-[ -f method/ucf_setup.json ] || python -m method.select_setup
+[ -f method/ucf_setup.json ] || { need_gpu; python -m method.select_setup; }
 echo "== training setup selected on the dev slice at $((SECONDS - T0))s"
-[ -f outputs/anomaldf_ucf/predictions.npz ] || SEED=0 bash scripts/method.sh
+[ -f outputs/anomaldf_ucf/predictions.npz ] || { need_gpu; SEED=0 bash scripts/method.sh; }
 echo "== reference UCF done at $((SECONDS - T0))s"
 
 bash scripts/evaluate_train.sh
