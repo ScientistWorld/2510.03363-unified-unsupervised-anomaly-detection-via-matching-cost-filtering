@@ -1,8 +1,6 @@
 # Once you set action to 'submit' or 'done', STOP immediately.
 # Do NOT sleep, poll, or wait for jobs. The system reads this file
 # only after your turn ends.
-action: submit
-gpus: 0
-test: false
+action: done
 milestone: core_claim_plus
-notes: "CPU rescoring job: scripts/run.sh with all reference/variant/shortcut artifacts already on disk (nothing retrains). Rescores every saved artifact with the hardened evaluators (missing-dir failure entries, collision-safe naming, header shape checks), runs the new before/after contract checks, reruns the paired bootstrap summary, regenerates scoring/scores_{train,test}.json and scores.json from the reference runs, and runs validate.py."
+notes: "Hardened MVTec-AD gym: hidden-half evaluator recomputes class-mean metrics from raw outputs, failed or missing runs score 0, red-team shortcuts closed; better variants beat the reference beyond seed noise and weaker ones fall below; pixel-level claim reproduced, image-level gain within noise; full-memory-bank brute force and public MVTec-AD answers left to the grader (HARDENING.md)."
