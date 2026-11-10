@@ -1,5 +1,8 @@
 #!/bin/bash
-# AnomalDF+UCF: train the cost-volume filtering network and predict on all test inputs.
+# AnomalDF+UCF: train the cost-volume filtering network on normal images with
+# synthetic anomalies, then predict every test input with the paper's fused
+# inference (0.5 * UCF anomaly probability + 0.5 * AnomalDF map, same N=3
+# templates; method/fusion.py).
 # Training-setup defaults (epochs, lr, foreground restriction) come from
 # method/ucf_setup.json (chosen on the visible dev slice by method/select_setup.py).
 set -euo pipefail

@@ -1,10 +1,10 @@
 {
   "experiments": {
     "rgb_mvtec_multiclass": {
-      "description": "Unimodal RGB multi-class anomaly detection and localization on MVTec-AD (15 categories, one model for all). Paper reference: AnomalDF with and without UCF, Table I (image/pixel AUROC). The gym runs the same dataset at 224x224 with a frozen DINOv2 ViT-S/14 and scores a hidden half of the official test set whose defect types are disjoint from the visible development half.",
+      "description": "Unimodal RGB multi-class anomaly detection and localization on MVTec-AD (15 categories, one model for all, normal-only training). Paper reference: AnomalDF with and without UCF, Table I (image/pixel AUROC, class-wise means) and Table XXIV (all seven metrics, 256px, N=3 templates). The gym runs the same dataset at 224x224 with a frozen DINOv2 ViT-S/14 and scores a hidden half of the official test set (880 images) whose defect types are disjoint from the visible development half; every metric is computed per category and averaged over the 15 categories, as in the paper.",
       "weight": 1.0,
       "primary_metric": "pixel_auroc",
-      "_scale_note": "Scaled setup: 224px inputs (16x16 patch grid), DINOv2 ViT-S/14, N=3 random templates, compact 3D U-Net filter (about 4M parameters), hidden half of the MVTec-AD test set (about 860 images). The paper's numbers below come from the full-resolution AnomalDF setting on the whole test set; they are kept for reference and are not expected to be matched at this scale.",
+      "_scale_note": "Scaled setup: 224px inputs (16x16 patch grid) instead of 256px, DINOv2 ViT-S/14, N=3 random same-category templates per input, a compact 3D U-Net filter (about 4M parameters instead of +43.8M), and the hidden half of the MVTec-AD test set (880 of 1725 images). The paper's numbers below come from its full-resolution AnomalDF setting on the whole test set; they are kept as the paper reported them and are not expected to be matched at this scale.",
       "_paper_overhead": {
         "anomaldf_ucf_added_params_M": 43.8,
         "anomaldf_ucf_added_flops_G": 32.7,
@@ -59,7 +59,39 @@
           "image_auroc": 98.5,
           "pixel_auroc": 98.8
         }
-      }
+      },
+      "_protocol": "Class-wise mean: each metric is computed over one category's images and averaged over categories with equal weight (paper Tables I, IV, XXIV). A run whose class-mean image AUROC or pixel AUROC is below 70 is scored as failed (0 on every metric).",
+      "_paper_table_xxiv": {
+        "note": "Table XXIV, MVTec-AD, resize 256, N=3 templates (Exp. IDs 1-2); the same setting as Table I's AnomalDF columns.",
+        "anomaldf": {
+          "image_auroc": 96.8,
+          "image_ap": 98.6,
+          "image_f1_max": 97.1,
+          "pixel_auroc": 98.1,
+          "pixel_ap": 61.3,
+          "pixel_f1_max": 60.8,
+          "pixel_aupro": 93.6
+        },
+        "anomaldf_ucf": {
+          "image_auroc": 98.5,
+          "image_ap": 99.4,
+          "image_f1_max": 97.8,
+          "pixel_auroc": 98.8,
+          "pixel_ap": 67.8,
+          "pixel_f1_max": 64.9,
+          "pixel_aupro": 94.2
+        },
+        "anomaldf_full_memory_bank": {
+          "image_auroc": 99.0,
+          "image_ap": 99.3,
+          "image_f1_max": 98.4,
+          "pixel_auroc": 97.5,
+          "pixel_f1_max": 58.7,
+          "pixel_aupro": 91.7
+        }
+      },
+      "_coefficient_note": "Image and pixel AUROC carry the most weight because the paper's main tables report them; AUPRO, pixel AP and the F1 metrics are the paper's additional metrics, where it reports its largest gains (Sec. IV-A3, Fig. 8).",
+      "_template_budget": "The paper's claim is accuracy with only N=3 normal templates per input, without a full memory bank. The evaluator cannot verify a method's memory, so the budget is a stated constraint (scoring/CONSTRAINTS.md), not a scored metric."
     }
   }
 }

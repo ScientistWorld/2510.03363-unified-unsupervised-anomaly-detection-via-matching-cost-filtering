@@ -2,11 +2,18 @@
 
 Training (paper Sec. III-G, S4-A/B): batch 8, Adam with a ReduceLROnPlateau
 scheduler, loss
-    L = Focal(M, M_s, gamma(sigmoid(y_c))) + CE(y_c, Y) + alpha * (SoftIoU + SSIM),  alpha = 0.1, gamma0 = 3,
-on Perlin-noise synthetic anomalies (restricted to the object foreground for
-object categories, GLAD-style). N = 3 same-category templates are drawn at
-random per input (training and testing). The image score is the mean of the
-top-250 anomaly probabilities.
+    L = Focal(M, M_s, gamma) + CE(y_c, Y) + alpha * (SoftIoU + SSIM),  alpha = 0.1,
+with the class-aware adaptor setting the focal parameter per sample:
+gamma = gamma0 - sigmoid(y_c) when the category is predicted correctly and
+gamma = gamma0 otherwise (gamma0 = 3). Synthetic anomalies are Perlin-noise
+masks (restricted to the object foreground for object categories,
+GLAD-style). N = 3 same-category templates are drawn at random per input
+(training and testing).
+
+Inference (Sec. III-F/G, method/fusion.py): the network's anomaly probability
+M is fused with the baseline (AnomalDF) response for the same templates,
+lambda * M + (1 - lambda) * M_baseline with lambda = 0.5, and the image score
+is the mean of the top-250 values of the fused map.
 
 Setup defaults (epochs, learning rate, foreground restriction) come from
 method/ucf_setup.json, written by method/select_setup.py, which chooses them
@@ -32,12 +39,13 @@ from data.mvtec import CATEGORIES, IMAGE_SIZE, load_test_inputs, load_textures, 
 from method.anomaly_synthesis import AnomalySynthesizer
 from method.backbone import DinoFeatures, to_float_images
 from method.foreground import foreground_masks
+from method.fusion import COMPONENTS, LAMBDA, combine, fuse
 from method.templates import category_index, nearest_templates, test_templates, train_templates
-from method.ucf_model import ARCH_VERSION, UCFNet, build_cost_volume, topk_mean
+from method.ucf_model import ARCH_VERSION, UCFNet, build_cost_volume
 
 GRID = 16  # 224 / 14 patch grid
-TOPK = 250
-RESUME_KEYS = ("templates", "no_guidance", "seed", "lr", "batch_size", "alpha", "gamma0", "fg_restrict", "train_fraction")
+GAMMA_RULE = 2  # 2: gamma = gamma0 - sigmoid(y_c) if the category is predicted correctly, else gamma0 (paper Sec. III-G)
+RESUME_KEYS = ("templates", "no_guidance", "seed", "lr", "batch_size", "alpha", "gamma0", "fg_restrict", "train_fraction", "loss")
 SETUP_FILE = Path(__file__).resolve().parent / "ucf_setup.json"
 PAPER_SETUP = {"epochs": 40, "lr": 1e-3, "fg_restrict": True}
 
@@ -103,7 +111,33 @@ def build_model(args, device: torch.device) -> UCFNet:
 
 
 def config_of(args) -> dict:
-    return {"arch": ARCH_VERSION, **{k: getattr(args, k) for k in RESUME_KEYS}}
+    return {"arch": ARCH_VERSION, "gamma_rule": GAMMA_RULE, **{k: getattr(args, k) for k in RESUME_KEYS}}
+
+
+def adaptor_gamma(cls: torch.Tensor, cats: torch.Tensor, gamma0: float) -> torch.Tensor:
+    """Class-aware adaptor: gamma0 - sigmoid(y_c) for correctly classified samples, gamma0 otherwise."""
+    true_logit = cls.gather(1, cats[:, None]).squeeze(1)
+    correct = cls.argmax(dim=1) == cats
+    return torch.where(correct, gamma0 - torch.sigmoid(true_logit), torch.full_like(true_logit, gamma0))
+
+
+def category_banks(cache_last: torch.Tensor, index: dict[int, np.ndarray]) -> dict[int, torch.Tensor]:
+    """L2-normalised last-layer patch tokens of every training image, per category: (n*h*w, C) half."""
+    banks = {}
+    for c, idx in index.items():
+        t = cache_last[torch.as_tensor(idx, device=cache_last.device)].float()  # (n,C,h,w)
+        banks[c] = F.normalize(t.flatten(2).transpose(1, 2).reshape(-1, t.shape[1]), dim=1).half()
+    return banks
+
+
+def full_bank_cost(q_last: torch.Tensor, cats: np.ndarray, banks: dict[int, torch.Tensor]) -> torch.Tensor:
+    """Min cosine cost of every query token against the whole category memory bank: (B,h,w)."""
+    b, _, h, w = q_last.shape
+    qn = F.normalize(q_last.float().flatten(2).transpose(1, 2), dim=-1).half()  # (B,hw,C)
+    out = torch.empty(b, h * w, device=q_last.device)
+    for j in range(b):
+        out[j] = 1.0 - (qn[j] @ banks[int(cats[j])].T).float().amax(dim=1)
+    return out.view(b, h, w)
 
 
 def train(args, device, backbone, cache, train_images, train_cats_np, index) -> UCFNet:
@@ -164,13 +198,16 @@ def train(args, device, backbone, cache, train_images, train_cats_np, index) -> 
             logits = F.interpolate(logits, size=images.shape[-2:], mode="bilinear", align_corners=False)
             cats = train_cats[idx_t]
             target = masks.long()
-            with torch.no_grad():
-                gamma = args.gamma0 * torch.sigmoid(cls.gather(1, cats[:, None]).squeeze(1))
-            loss = (
-                focal_loss(logits, target, gamma)
-                + F.cross_entropy(cls, cats)
-                + args.alpha * (soft_iou_loss(logits, target) + ssim_loss(logits, target))
-            )
+            if args.loss == "focal":  # ablation (paper Table IX): focal loss alone, no adaptor / CE / structural terms
+                loss = focal_loss(logits, target, torch.full((logits.shape[0],), args.gamma0, device=device))
+            else:
+                with torch.no_grad():
+                    gamma = adaptor_gamma(cls, cats, args.gamma0)
+                loss = (
+                    focal_loss(logits, target, gamma)
+                    + F.cross_entropy(cls, cats)
+                    + args.alpha * (soft_iou_loss(logits, target) + ssim_loss(logits, target))
+                )
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -209,14 +246,16 @@ def predict(args, device, model, backbone, cache, train_cats_np, index, output: 
     m = len(ids)
     maps = np.zeros((m, IMAGE_SIZE, IMAGE_SIZE), dtype=np.float32)
     scores = np.zeros(m, dtype=np.float32)
+    comp_logits = comp_cost = None
     train_desc = F.normalize(cache[:, -1].float().mean(dim=(2, 3)), dim=1)
+    banks = category_banks(cache[:, -1], index) if args.baseline_bank == "all" else None
+    draws = 1 if args.test_templates == "nearest" else args.test_draws
     bs = 16
     for s in range(0, m, bs):
         rows = range(s, min(s + bs, m))
         x = to_float_images(torch.from_numpy(images[s:s + bs]).to(device))
         q = backbone(x)
-        acc = torch.zeros(x.shape[0], IMAGE_SIZE, IMAGE_SIZE, device=device, dtype=torch.float64)
-        draws = 1 if args.test_templates == "nearest" else args.test_draws
+        logits_draws, cost_draws = [], []
         for draw in range(draws):
             if args.test_templates == "nearest":
                 desc = F.normalize(q[-1].mean(dim=(2, 3)), dim=1)
@@ -224,30 +263,41 @@ def predict(args, device, model, backbone, cache, train_cats_np, index, output: 
             else:
                 t_idx = np.stack([test_templates(index, cats[i], args.templates, args.template_seed, draw, ids[i]) for i in rows])
             volume, initial = build_cost_volume(q, gather_templates(cache, t_idx))
-            logits, _ = model(volume, initial, q)
-            logits = F.interpolate(logits, size=(IMAGE_SIZE, IMAGE_SIZE), mode="bilinear", align_corners=False)
-            acc += logits.double().softmax(dim=1)[:, 1]
-        prob = acc / draws
-        # maps are stored as log-probabilities: same ranking as the probability,
-        # without float32 saturation ties at p = 1
-        maps[s:s + bs] = torch.log(prob.clamp_min(1e-300)).float().cpu().numpy()
-        scores[s:s + bs] = topk_mean(prob, TOPK).float().cpu().numpy()
+            logits, _ = model(volume, initial, q)  # (B,2,16,16)
+            logits_draws.append(logits.float())
+            if args.baseline_bank == "templates":
+                cost_draws.append(initial[:, -1].float())  # AnomalDF cost: last layer, min over the templates
+        if args.baseline_bank == "all":
+            cost_draws = [full_bank_cost(q[-1], cats[s:s + bs], banks)]
+        prob, base = combine(logits_draws, cost_draws)
+        maps[s:s + bs], scores[s:s + bs] = fuse(prob, base, args.lam)
+        lg = torch.stack(logits_draws, dim=1).cpu().numpy()
+        cs = torch.stack(cost_draws, dim=1).cpu().numpy()
+        if comp_logits is None:
+            comp_logits = np.zeros((m, *lg.shape[1:]), np.float32)
+            comp_cost = np.zeros((m, *cs.shape[1:]), np.float32)
+        comp_logits[s:s + bs] = lg
+        comp_cost[s:s + bs] = cs
     path = write_predictions(output, ids, scores, maps)
+    np.savez_compressed(output / COMPONENTS, ids=np.asarray(ids, np.int64), logits16=comp_logits, cost16=comp_cost)
     meta = {
-        "method": "AnomalDF+UCF (cost-volume filtering)",
+        "method": "AnomalDF+UCF (cost-volume filtering, fused with the AnomalDF response)",
         "backbone": "DINOv2 ViT-S/14, blocks 3/6/9/12, 224px",
         "templates": args.templates,
         "test_templates": args.test_templates,
         "test_draws": draws,
         "template_seed": args.template_seed,
         "guidance": not args.no_guidance,
+        "loss": args.loss,
         "seed": args.seed,
         "epochs": epoch,
         "lr": args.lr,
         "fg_restrict": args.fg_restrict,
         "train_fraction": args.train_fraction,
-        "image_score": f"mean of top-{TOPK} anomaly probabilities",
-        "anomaly_maps": "log of the anomaly probability (softmax output)",
+        "lambda": args.lam,
+        "baseline_bank": args.baseline_bank,
+        "anomaly_maps": "lambda * UCF anomaly probability + (1 - lambda) * AnomalDF map (same templates unless baseline_bank=all)",
+        "image_score": "mean of the top-250 values of the fused map",
         "arch_version": ARCH_VERSION,
         "trainable_params_M": sum(p.numel() for p in model.parameters()) / 1e6,
     }
@@ -266,6 +316,10 @@ def main() -> None:
     p.add_argument("--templates", type=int, default=3)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--no-guidance", action="store_true", help="ablation: drop both guidance streams")
+    p.add_argument("--loss", choices=("full", "focal"), default="full", help="ablation: 'focal' trains with the focal loss alone")
+    p.add_argument("--lam", type=float, default=LAMBDA, help="inference fusion weight of the UCF map (paper: 0.5)")
+    p.add_argument("--baseline-bank", choices=("templates", "all"), default="templates",
+                   help="baseline map fused at inference: same N templates (paper) or the whole category memory bank")
     p.add_argument("--output", type=Path, default=Path("outputs/anomaldf_ucf"))
     p.add_argument("--checkpoint", type=Path, default=Path("checkpoints/anomaldf_ucf_seed0.pt"))
     p.add_argument("--test-draws", type=int, default=1, help="random template draws averaged at test time")

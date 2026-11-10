@@ -1,7 +1,9 @@
 #!/bin/bash
-# Job entry point: prepare data, reproduce the reference (AnomalDF baseline +
-# AnomalDF+UCF, seed 0), score it on both slices, then run the hardening study
-# (seeds, variants, brute force, shortcuts). Every stage is resumable.
+# Job entry point: prepare data, reproduce the reference end to end (AnomalDF
+# baseline, dev-slice setup selection, AnomalDF+UCF seed 0 with the paper's
+# fused inference), score it on both slices, then run the hardening study
+# (seeds, better/weaker variants, lambda sensitivity, brute force, shortcuts).
+# Every stage is resumable: finished artifacts are kept.
 set -euo pipefail
 cd /home/user
 

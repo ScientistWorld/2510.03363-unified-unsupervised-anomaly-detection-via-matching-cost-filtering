@@ -30,6 +30,9 @@ eval/test/downloads/
 eval/train/data/
 # Hardening-study prediction artifacts (large, regenerable)
 redteam/hardening/outputs/
+redteam/hardening/aux_outputs/
+# Setup-selection runs (components only after scoring; regenerable)
+tmp/select/
 
 # Files too large for git: public fetched data (datasets, weights) and
 # agent-generated data that exceeds git's size limit. Repopulated from

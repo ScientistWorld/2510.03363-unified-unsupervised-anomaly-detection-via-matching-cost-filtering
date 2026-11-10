@@ -8,6 +8,14 @@ Two cases need the evaluator invoked in a specific way and are scored here:
 forged_scores (a forged score file already sits at the output path) and
 baseline_replacement (the baseline artifact is replaced next to the
 reference artifact).
+
+missing_artifact is a method directory with only a metadata file claiming
+perfect results (a crashed or abandoned run): it must score its worst value,
+not drop out of the ranking. category_prior shifts every category's image
+scores and maps by an offset ordered by that category's anomaly rate on the
+visible development slice (the hidden half has the same per-category split
+ratio): it exploits metrics pooled over categories and leaves every
+within-category ranking unchanged.
 """
 from __future__ import annotations
 
@@ -19,8 +27,10 @@ from pathlib import Path
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
+DEV = ROOT / "eval" / "train" / "data" / "dev_answers.npz"  # visible development answers
 REF = ROOT / "outputs" / "anomaldf_ucf" / "predictions.npz"
 OUT = ROOT / "redteam" / "hardening" / "outputs"
+AUX = ROOT / "redteam" / "hardening" / "aux_outputs"
 SC = ROOT / "redteam" / "hardening" / "scores"
 
 
@@ -84,6 +94,30 @@ def main() -> None:
             masks=fake,
             categories=np.zeros(n, np.int64),
         )
+    if not (OUT / "shortcut_missing_artifact").exists():
+        d = OUT / "shortcut_missing_artifact"
+        d.mkdir(parents=True)
+        (d / "metadata.json").write_text(json.dumps({"status": "crashed before writing predictions", "image_auroc": 100.0}))
+    if not (OUT / "shortcut_category_prior" / "predictions.npz").exists():
+        from data.mvtec import load_test_inputs
+
+        _, test_cats, test_ids = load_test_inputs()
+        if not np.array_equal(test_ids, ids):
+            raise SystemExit("reference ids are not in test-input order")
+        with np.load(DEV) as dv:
+            dev_cats, dev_labels = dv["categories"], dv["labels"]
+        rate = {int(c): float(dev_labels[dev_cats == c].mean()) for c in np.unique(dev_cats)}
+        order = sorted(rate, key=lambda c: rate[c])  # most anomalous category last
+        offset = {c: 1.5 * k for k, c in enumerate(order)}  # [0,1]-normalised outputs never overlap across categories
+        shift = np.asarray([offset[int(c)] for c in test_cats], np.float32)
+        span_s = float(scores.max() - scores.min()) or 1.0
+        span_m = float(maps.max() - maps.min()) or 1.0
+        save(
+            OUT / "shortcut_category_prior",
+            ids=ids,
+            image_scores=((scores - scores.min()) / span_s + shift).astype(np.float32),
+            anomaly_maps=((maps - maps.min()) / span_m + shift[:, None, None]).astype(np.float32),
+        )
     forged = SC / "shortcut_forged_scores_test.json"
     if not (OUT / "shortcut_forged_scores" / "predictions.npz").exists() or not forged.exists():
         d = save(OUT / "shortcut_forged_scores", ids=ids, image_scores=np.zeros(n, np.float32), anomaly_maps=np.zeros_like(maps))
@@ -92,8 +126,8 @@ def main() -> None:
         evaluate([d / "predictions.npz"], forged)
     repl = SC / "shortcut_baseline_replacement_test.json"
     if not repl.exists():
-        base_dir = OUT / "shortcut_baseline_replacement" / "anomaldf"
-        ref_dir = OUT / "shortcut_baseline_replacement" / "anomaldf_ucf"
+        base_dir = AUX / "shortcut_baseline_replacement" / "anomaldf"  # outside OUT: scored here only
+        ref_dir = AUX / "shortcut_baseline_replacement" / "anomaldf_ucf"
         save(base_dir, ids=ids, image_scores=np.zeros(n, np.float32), anomaly_maps=np.zeros_like(maps))
         save(ref_dir, ids=ids, image_scores=scores, anomaly_maps=maps)
         evaluate([base_dir / "predictions.npz", ref_dir / "predictions.npz"], repl)
