@@ -42,5 +42,10 @@
 - Corrected-layout UCF improved the primary pixel AUROC from 70.7 to 74.9 and improved pixel AP, pixel F1, AUPRO, and category-mean pixel AUROC, with measured compact overhead of 0.224M parameters and 0.064G FLOPs.
 - Image-level AUROC/AP did not improve on the compact procedural split, so the final milestone remains `core_claim_plus`.
 
+### [2026-11-10 22:45] - core_claim_plus
+- Hardening complete (see HARDENING.md). The gym is MVTec-AD (15 categories, 224 px, frozen DINOv2 ViT-S/14), scored on a hidden half of the test set whose defect types are absent from the visible development half. The evaluator recomputes class-wise mean metrics from raw outputs; failed runs, including missing method directories, score 0 everywhere.
+- On the hidden half, AnomalDF+UCF (paper inference, lambda = 0.5, N = 3 templates) improves on AnomalDF: pixel AUROC 93.35 -> 94.07, pixel AP 44.3 -> 57.8, AUPRO 85.3 -> 86.7, pixel F1 48.9 -> 57.4. Image AUROC 91.64 -> 91.85 is within noise, so the image-level claim is not established at this scale.
+- Better variants inside the constraints rank above the reference beyond seed noise, and weaker ones rank below. Every red-team shortcut is closed. The full-memory-bank brute force and the public MVTec-AD annotations are left to the grader as stated constraints.
+
 ## Stop Justification
 - Completed at milestone `core_claim_plus`.
