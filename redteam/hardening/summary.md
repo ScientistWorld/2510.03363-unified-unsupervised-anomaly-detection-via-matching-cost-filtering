@@ -31,7 +31,7 @@
 | shortcut_constant_outputs | shortcut | failed: task gate: image_auroc=50.00, pixel_auroc=50.00 (class means;  |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_duplicate_ids | shortcut | failed: ids must list every test input exactly once |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_forged_scores | shortcut | failed: task gate: image_auroc=50.00, pixel_auroc=50.00 (class means;  |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| shortcut_half_population | shortcut | failed: ids must list every test input exactly once |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| shortcut_half_population | shortcut | failed: ids must have shape (1725,) (one row per test input id) |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_invented_answers | shortcut | failed: task gate: image_auroc=51.12, pixel_auroc=50.81 (class means;  |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_missing_artifact | shortcut | failed: no predictions.npz |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_nan_maps | shortcut | failed: non-finite anomaly maps |  | -9.443 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
@@ -71,7 +71,7 @@ seed spread (max-min over 3 training seeds): {"image_auroc": 0.098, "pixel_auroc
 | shortcut_constant_outputs | shortcut | failed: task gate: image_auroc=50.00, pixel_auroc=50.00 (class means;  |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_duplicate_ids | shortcut | failed: ids must list every test input exactly once |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_forged_scores | shortcut | failed: task gate: image_auroc=50.00, pixel_auroc=50.00 (class means;  |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
-| shortcut_half_population | shortcut | failed: ids must list every test input exactly once |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
+| shortcut_half_population | shortcut | failed: ids must have shape (1725,) (one row per test input id) |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_invented_answers | shortcut | failed: task gate: image_auroc=51.63, pixel_auroc=51.57 (class means;  |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_missing_artifact | shortcut | failed: no predictions.npz |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |
 | shortcut_nan_maps | shortcut | failed: non-finite anomaly maps |  | -9.553 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 |

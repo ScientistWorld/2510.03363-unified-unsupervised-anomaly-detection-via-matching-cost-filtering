@@ -1,0 +1,37 @@
+{
+  "_answers": {
+    "anomalous": 644,
+    "categories": 15,
+    "images": 880,
+    "map_size": 224,
+    "normal": 236
+  },
+  "_protocol": "every metric is computed per category, then averaged over categories with equal weight",
+  "_slice": "test",
+  "_task_gate": "class-mean image_auroc and pixel_auroc must both be >= 70.0; otherwise every metric is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_diagnostics": {
+        "shortcut_duplicate_ids": {}
+      },
+      "_slice": "test",
+      "_sources": {
+        "shortcut_duplicate_ids": "redteam/hardening/outputs/shortcut_duplicate_ids/predictions.npz"
+      },
+      "_validity": {
+        "shortcut_duplicate_ids": "failed: ids must list every test input exactly once"
+      },
+      "results": {
+        "shortcut_duplicate_ids": {
+          "image_ap": 0.0,
+          "image_auroc": 0.0,
+          "image_f1_max": 0.0,
+          "pixel_ap": 0.0,
+          "pixel_aupro": 0.0,
+          "pixel_auroc": 0.0,
+          "pixel_f1_max": 0.0
+        }
+      }
+    }
+  }
+}

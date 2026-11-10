@@ -1,0 +1,8 @@
+{
+  "before_name_collision_exit_code": 1,
+  "after_name_collision_exit_code": 0,
+  "before_absent_dir_exit_code": 0,
+  "after_oversized_header_exit_code": 0,
+  "after_absent_dir_exit_code": 0,
+  "before_oversized_header_exit_code": 0
+}

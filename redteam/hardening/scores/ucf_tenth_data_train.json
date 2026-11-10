@@ -1,0 +1,179 @@
+{
+  "_answers": {
+    "anomalous": 614,
+    "categories": 15,
+    "images": 845,
+    "map_size": 224,
+    "normal": 231
+  },
+  "_protocol": "every metric is computed per category, then averaged over categories with equal weight",
+  "_slice": "train",
+  "_task_gate": "class-mean image_auroc and pixel_auroc must both be >= 70.0; otherwise every metric is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_diagnostics": {
+        "ucf_tenth_data": {
+          "per_category": {
+            "bottle": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 84.7164,
+              "pixel_aupro": 97.9228,
+              "pixel_auroc": 99.6087,
+              "pixel_f1_max": 74.5489
+            },
+            "cable": {
+              "image_ap": 95.678,
+              "image_auroc": 93.3283,
+              "image_f1_max": 91.4894,
+              "pixel_ap": 65.8619,
+              "pixel_aupro": 90.4017,
+              "pixel_auroc": 98.0853,
+              "pixel_f1_max": 65.0739
+            },
+            "capsule": {
+              "image_ap": 92.0346,
+              "image_auroc": 77.3737,
+              "image_f1_max": 93.75,
+              "pixel_ap": 25.9671,
+              "pixel_aupro": 88.7328,
+              "pixel_auroc": 96.3682,
+              "pixel_f1_max": 29.4674
+            },
+            "carpet": {
+              "image_ap": 99.9295,
+              "image_auroc": 99.7305,
+              "image_f1_max": 99.0654,
+              "pixel_ap": 81.936,
+              "pixel_aupro": 96.9953,
+              "pixel_auroc": 99.3185,
+              "pixel_f1_max": 74.0357
+            },
+            "grid": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 47.1445,
+              "pixel_aupro": 96.0345,
+              "pixel_auroc": 99.047,
+              "pixel_f1_max": 51.6677
+            },
+            "hazelnut": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 64.7644,
+              "pixel_aupro": 96.6379,
+              "pixel_auroc": 99.2451,
+              "pixel_f1_max": 64.9447
+            },
+            "leather": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 41.3893,
+              "pixel_aupro": 98.2108,
+              "pixel_auroc": 98.6909,
+              "pixel_f1_max": 48.0144
+            },
+            "metal_nut": {
+              "image_ap": 99.8669,
+              "image_auroc": 99.4071,
+              "image_f1_max": 98.9011,
+              "pixel_ap": 69.5142,
+              "pixel_aupro": 85.7635,
+              "pixel_auroc": 92.6539,
+              "pixel_f1_max": 75.4913
+            },
+            "pill": {
+              "image_ap": 97.6925,
+              "image_auroc": 89.9487,
+              "image_f1_max": 94.5205,
+              "pixel_ap": 67.349,
+              "pixel_aupro": 91.0221,
+              "pixel_auroc": 96.3149,
+              "pixel_f1_max": 68.6926
+            },
+            "screw": {
+              "image_ap": 90.8051,
+              "image_auroc": 80.7292,
+              "image_f1_max": 88.0734,
+              "pixel_ap": 18.9771,
+              "pixel_aupro": 76.3741,
+              "pixel_auroc": 87.6197,
+              "pixel_f1_max": 24.923
+            },
+            "tile": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 89.5366,
+              "pixel_aupro": 97.1429,
+              "pixel_auroc": 98.9973,
+              "pixel_f1_max": 81.8505
+            },
+            "toothbrush": {
+              "image_ap": 99.5833,
+              "image_auroc": 98.8889,
+              "image_f1_max": 96.7742,
+              "pixel_ap": 48.3479,
+              "pixel_aupro": 92.9613,
+              "pixel_auroc": 98.6126,
+              "pixel_f1_max": 55.296
+            },
+            "transistor": {
+              "image_ap": 92.6417,
+              "image_auroc": 96.3333,
+              "image_f1_max": 92.3077,
+              "pixel_ap": 54.0526,
+              "pixel_aupro": 84.3859,
+              "pixel_auroc": 91.8779,
+              "pixel_f1_max": 55.977
+            },
+            "wood": {
+              "image_ap": 98.1826,
+              "image_auroc": 94.9821,
+              "image_f1_max": 98.4127,
+              "pixel_ap": 80.4596,
+              "pixel_aupro": 96.0878,
+              "pixel_auroc": 98.7551,
+              "pixel_f1_max": 74.5423
+            },
+            "zipper": {
+              "image_ap": 99.9288,
+              "image_auroc": 99.7596,
+              "image_f1_max": 99.0291,
+              "pixel_ap": 55.866,
+              "pixel_aupro": 81.4212,
+              "pixel_auroc": 92.8953,
+              "pixel_f1_max": 56.7762
+            }
+          },
+          "pooled_over_categories": {
+            "image_auroc": 91.80873415401103,
+            "pixel_auroc": 91.2091627685223
+          }
+        }
+      },
+      "_slice": "train",
+      "_sources": {
+        "ucf_tenth_data": "redteam/hardening/outputs/ucf_tenth_data/predictions.npz"
+      },
+      "_validity": {
+        "ucf_tenth_data": "ok"
+      },
+      "results": {
+        "ucf_tenth_data": {
+          "image_ap": 97.75620051461266,
+          "image_auroc": 95.36542980844136,
+          "image_f1_max": 96.82156893913084,
+          "pixel_ap": 59.72551145285777,
+          "pixel_aupro": 91.33963666209469,
+          "pixel_auroc": 96.53935750491691,
+          "pixel_f1_max": 60.08678679681894
+        }
+      }
+    }
+  }
+}

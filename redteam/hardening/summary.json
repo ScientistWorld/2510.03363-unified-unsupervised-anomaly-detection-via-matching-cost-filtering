@@ -215,7 +215,7 @@
       },
       "shortcut_half_population": {
         "group": "shortcut",
-        "status": "failed: ids must list every test input exactly once",
+        "status": "failed: ids must have shape (1725,) (one row per test input id)",
         "rank_honest_cohort": null,
         "rank_full_cohort": -9.442972709592834,
         "image_auroc": 0.0,
@@ -710,7 +710,7 @@
       },
       "shortcut_half_population": {
         "group": "shortcut",
-        "status": "failed: ids must list every test input exactly once",
+        "status": "failed: ids must have shape (1725,) (one row per test input id)",
         "rank_honest_cohort": null,
         "rank_full_cohort": -9.553455152731884,
         "image_auroc": 0.0,
