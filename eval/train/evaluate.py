@@ -1,33 +1,39 @@
 """Development-slice (train) evaluator for the RGB multi-class anomaly-detection gym.
 
-Scores every submitted method directory against the labels and masks of the
-visible development half (eval/train/data/dev_answers.npz). The hidden test
-applies the same contract, protocol and task gate to the other half, whose
-defect types never appear here. A method contributes raw outputs only:
+Two experiments, one per dataset, each against the labels and masks of the
+visible development slice (eval/train/data/). The hidden test applies the
+same contract, protocol and task gate to the other part of each test set,
+whose defect types never appear here:
 
-    outputs/<method>/predictions.npz
-        ids            (M,)          int    one row per test input id, each exactly once
-        image_scores   (M,)          float  higher = more anomalous
-        anomaly_maps   (M, 224, 224) float  higher = more anomalous
+    rgb_mvtec_multiclass   MVTec-AD development half    outputs/<method>/predictions.npz
+    rgb_visa_multiclass    VisA development third       outputs/<method>/predictions_visa.npz
+
+A method contributes raw outputs only; each file holds
+
+    ids            (M,)          int    one row per test input id of that dataset, each exactly once
+    image_scores   (M,)          float  higher = more anomalous
+    anomaly_maps   (M, 224, 224) float  higher = more anomalous
 
 Everything else - which ids are scored, labels, masks, metric definitions,
 the averaging protocol, the task gate - is fixed here. Any other array or
 file the method writes (self-reported costs, labels, masks, scores, flags) is
 ignored.
 
-Protocol (the paper's, Tables I/IV/XXIV): every metric is computed per
-category over that category's scored images and then averaged over the 15
-categories with equal weight ("class-wise mean"). Rank-based metrics are
-therefore unaffected by how scores are scaled from one category to another.
+Protocol (the paper's, Tables I/III/IV/XXIV): every metric is computed per
+category over that category's scored images and then averaged over the
+dataset's categories with equal weight ("class-wise mean"). Rank-based
+metrics are therefore unaffected by how scores are scaled from one category
+to another.
 
-A run is scored as failed - every metric set to 0, its worst value - when the
-artifact is missing or unreadable, does not cover the full id set exactly
-once, declares or has the wrong shape or dtype (shapes are checked from the
-array headers before any data is read), contains non-finite values, or does
-not solve both halves of the task (class-mean image AUROC or pixel AUROC below
-TASK_GATE; chance is 50). Scoring one artifact never stops the others: when
-two directories sanitise to the same method key, the directory literally named
-after the key keeps it and the other is scored as '<key>__dup<k>'.
+Per experiment, a run is scored as failed - every metric set to 0, its worst
+value - when its artifact is missing or unreadable, does not cover the full
+id set exactly once, declares or has the wrong shape or dtype (shapes are
+checked from the array headers before any data is read), contains non-finite
+values, or does not solve both halves of the task (class-mean image AUROC or
+pixel AUROC below TASK_GATE; chance is 50). Scoring one artifact never stops
+the others: when two directories sanitise to the same method key, the
+directory literally named after the key keeps it and the other is scored as
+'<key>__dup<k>'.
 """
 from __future__ import annotations
 
@@ -42,8 +48,11 @@ from numpy.lib import format as npy_format
 from eval.train.metrics import auroc, image_metrics, pixel_metrics
 
 ROOT = Path(__file__).resolve().parents[2]
-ANSWERS = ROOT / "eval" / "train" / "data" / "dev_answers.npz"
-EXPERIMENT = "rgb_mvtec_multiclass"
+ANSWER_DIR = ROOT / "eval" / "train" / "data"
+EXPERIMENTS = {
+    "rgb_mvtec_multiclass": {"answers": ANSWER_DIR / "dev_answers.npz", "artifact": "predictions.npz", "dataset": "MVTec-AD"},
+    "rgb_visa_multiclass": {"answers": ANSWER_DIR / "visa_dev_answers.npz", "artifact": "predictions_visa.npz", "dataset": "VisA"},
+}
 SLICE = "train"
 MAP_SIZE = 224
 TASK_GATE = 70.0  # class-mean image AUROC AND pixel AUROC must clear this (chance = 50)
@@ -62,8 +71,13 @@ class ArtifactError(Exception):
     pass
 
 
+def method_dir(path: Path) -> Path:
+    """A method is a directory; a path to a file inside it names that directory."""
+    return path if path.is_dir() else path.parent
+
+
 def method_name(path: Path) -> str:
-    name = re.sub(r"[^A-Za-z0-9_]+", "_", path.parent.name).strip("_").lower()
+    name = re.sub(r"[^A-Za-z0-9_]+", "_", method_dir(path).name).strip("_").lower()
     return name or "method"
 
 
@@ -98,7 +112,7 @@ def member_shape(data: np.lib.npyio.NpzFile, key: str) -> tuple[int, ...]:
 
 def load_artifact(path: Path, all_ids: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     if not path.is_file():
-        raise ArtifactError("no predictions.npz")
+        raise ArtifactError(f"no {path.name}")
     try:
         data = np.load(path, allow_pickle=False)
     except Exception as exc:  # noqa: BLE001 - any unreadable artifact fails
@@ -193,7 +207,7 @@ def assign_names(paths: list[Path]) -> list[tuple[str, Path]]:
         groups.setdefault(method_name(path), []).append(path)
     named, taken = [], set(groups)
     for name, group in groups.items():
-        group.sort(key=lambda p: (p.parent.name != name, str(p)))
+        group.sort(key=lambda p: (method_dir(p).name != name, str(p)))
         named.append((name, group[0]))
         k = 0
         for path in group[1:]:
@@ -206,42 +220,50 @@ def assign_names(paths: list[Path]) -> list[tuple[str, Path]]:
 
 
 def evaluate(paths: list[Path]) -> dict:
-    answers = load_answers(ANSWERS)
-    results, validity, diagnostics, sources = {}, {}, {}, {}
-    for name, path in assign_names(paths):
-        metrics, status, diag = score_artifact(path, answers)
-        results[name] = metrics
-        validity[name] = status
-        diagnostics[name] = diag
-        sources[name] = str(path)
-        print(f"[{SLICE}] {name}: {status} " + json.dumps({k: round(v, 3) for k, v in metrics.items()}), flush=True)
+    answers = {exp: load_answers(spec["answers"]) for exp, spec in EXPERIMENTS.items()}
+    named = assign_names(paths)
+    experiments, answer_info = {}, {}
+    for exp, spec in EXPERIMENTS.items():
+        ans = answers[exp]
+        results, validity, diagnostics, sources = {}, {}, {}, {}
+        for name, path in named:
+            artifact = method_dir(path) / spec["artifact"]
+            metrics, status, diag = score_artifact(artifact, ans)
+            results[name] = metrics
+            validity[name] = status
+            diagnostics[name] = diag
+            sources[name] = str(artifact)
+            print(f"[{SLICE}:{exp}] {name}: {status} " + json.dumps({k: round(v, 3) for k, v in metrics.items()}), flush=True)
+        answer_info[exp] = {
+            "dataset": spec["dataset"],
+            "artifact": f"outputs/<method>/{spec['artifact']}",
+            "images": int(ans["ids"].size),
+            "anomalous": int(ans["labels"].sum()),
+            "normal": int((ans["labels"] == 0).sum()),
+            "categories": int(np.unique(ans["categories"]).size),
+            "map_size": MAP_SIZE,
+        }
+        experiments[exp] = {
+            "_slice": SLICE,
+            "_answers": answer_info[exp],
+            "_validity": validity,
+            "_sources": sources,
+            "_diagnostics": diagnostics,
+            "results": results,
+        }
     return {
         "_slice": SLICE,
-        "_answers": {
-            "images": int(answers["ids"].size),
-            "anomalous": int(answers["labels"].sum()),
-            "normal": int((answers["labels"] == 0).sum()),
-            "categories": int(np.unique(answers["categories"]).size),
-            "map_size": MAP_SIZE,
-        },
-        "_protocol": "every metric is computed per category, then averaged over categories with equal weight",
-        "_task_gate": f"class-mean image_auroc and pixel_auroc must both be >= {TASK_GATE}; otherwise every metric is 0",
-        "experiments": {
-            EXPERIMENT: {
-                "_slice": SLICE,
-                "_validity": validity,
-                "_sources": sources,
-                "_diagnostics": diagnostics,
-                "results": results,
-            }
-        },
+        "_answers": answer_info,
+        "_protocol": "every metric is computed per category, then averaged over the dataset's categories with equal weight",
+        "_task_gate": f"per experiment, class-mean image_auroc and pixel_auroc must both be >= {TASK_GATE}; otherwise every metric of that experiment is 0",
+        "experiments": experiments,
     }
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--predictions", type=Path, nargs="+", required=True,
-                        help="outputs/<method>/predictions.npz paths (a missing file scores that method as failed)")
+                        help="method directories or outputs/<method>/predictions.npz paths (a missing artifact scores that method as failed in that experiment)")
     parser.add_argument("--scores", type=Path, default=ROOT / "scoring" / "scores_train.json")
     args = parser.parse_args()
     scores = evaluate(args.predictions)

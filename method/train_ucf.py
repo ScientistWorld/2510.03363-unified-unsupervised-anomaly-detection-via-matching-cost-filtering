@@ -1,28 +1,37 @@
-"""Train AnomalDF+UCF on MVTec-AD normal images and write test predictions.
+"""Train AnomalDF+UCF on one benchmark's normal images and write test predictions.
+
+Datasets: --dataset mvtec (MVTec-AD, 15 categories) or visa (VisA, 12
+categories); one unified model per dataset, as in the paper.
 
 Training (paper Sec. III-G, S4-A/B): batch 8, Adam with a ReduceLROnPlateau
-scheduler, loss
+scheduler, 40 epochs, loss
     L = Focal(M, M_s, gamma) + CE(y_c, Y) + alpha * (SoftIoU + SSIM),  alpha = 0.1,
 with the class-aware adaptor setting the focal parameter per sample:
 gamma = gamma0 - sigmoid(y_c) when the category is predicted correctly and
 gamma = gamma0 otherwise (gamma0 = 3). Synthetic anomalies are Perlin-noise
 masks (restricted to the object foreground for object categories,
-GLAD-style). N = 3 same-category templates are drawn at random per input
-(training and testing).
+GLAD-style). N = 3 same-category templates are drawn at random per input.
+The cost volume keeps the K = 256 lowest matching costs per input token
+(method/ucf_model.py), so its shape does not depend on the number of
+templates.
 
-Inference (Sec. III-F/G, method/fusion.py): the network's anomaly probability
-M is fused with the baseline (AnomalDF) response for the same templates,
-lambda * M + (1 - lambda) * M_baseline with lambda = 0.5, and the image score
-is the mean of the top-250 values of the fused map.
+Inference (Sec. III-F/G, S-E, Table XXIV; method/fusion.py): by default the
+trained model is applied, without retraining, to the cost volume against the
+WHOLE category memory bank (the paper's full-shot AnomalDF protocol); the
+network's anomaly probability M is fused with the baseline (AnomalDF)
+response for the same templates, lambda * M + (1 - lambda) * M_baseline with
+lambda = 0.5, and the image score is the mean of the top-250 values of the
+fused map. --test-templates random reproduces the paper's N = 3 random-template
+inference instead.
 
 Setup defaults (epochs, learning rate, foreground restriction) come from
-method/ucf_setup.json, written by method/select_setup.py, which chooses them
-on the visible development slice only. Without that file the paper defaults
-apply (40 epochs, lr 1e-3, foreground restriction on).
+method/ucf_setup.json (chosen on the visible MVTec-AD development slice; the
+choice equals the paper's defaults: 40 epochs, lr 1e-3, foreground restriction on).
 
 Usage:
-  python -m method.train_ucf --output outputs/anomaldf_ucf --checkpoint checkpoints/anomaldf_ucf_seed0.pt --seed 0
-  python -m method.train_ucf --predict-only --checkpoint ... --output ... [--test-draws 4 | --test-templates nearest]
+  python -m method.train_ucf --dataset mvtec --output outputs/anomaldf_ucf --checkpoint checkpoints/anomaldf_ucf_seed0.pt --seed 0
+  python -m method.train_ucf --dataset visa --output outputs/anomaldf_ucf --checkpoint checkpoints/anomaldf_ucf_visa_seed0.pt --seed 0
+  python -m method.train_ucf --predict-only --checkpoint ... --output ... [--test-templates random]
 """
 from __future__ import annotations
 
@@ -35,17 +44,17 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from data.mvtec import CATEGORIES, IMAGE_SIZE, load_test_inputs, load_textures, load_train, write_predictions
+from data.mvtec import IMAGE_SIZE, category_names, load_test_inputs, load_textures, load_train, metadata_name, predictions_name, write_predictions
 from method.anomaly_synthesis import AnomalySynthesizer
 from method.backbone import DinoFeatures, to_float_images
 from method.foreground import foreground_masks
-from method.fusion import COMPONENTS, LAMBDA, combine, fuse
+from method.fusion import LAMBDA, combine, components_name, fuse
 from method.templates import category_index, nearest_templates, test_templates, train_templates
-from method.ucf_model import ARCH_VERSION, UCFNet, build_cost_volume
+from method.ucf_model import ARCH_VERSION, MATCH_K, UCFNet, bank_cost_volume, build_cost_volume
 
 GRID = 16  # 224 / 14 patch grid
 GAMMA_RULE = 2  # 2: gamma = gamma0 - sigmoid(y_c) if the category is predicted correctly, else gamma0 (paper Sec. III-G)
-RESUME_KEYS = ("templates", "no_guidance", "seed", "lr", "batch_size", "alpha", "gamma0", "fg_restrict", "train_fraction", "loss")
+RESUME_KEYS = ("dataset", "templates", "match_k", "no_guidance", "seed", "lr", "batch_size", "alpha", "gamma0", "fg_restrict", "train_fraction", "loss")
 SETUP_FILE = Path(__file__).resolve().parent / "ucf_setup.json"
 PAPER_SETUP = {"epochs": 40, "lr": 1e-3, "fg_restrict": True}
 
@@ -104,8 +113,8 @@ def gather_templates(cache: torch.Tensor, t_idx: np.ndarray) -> list[torch.Tenso
 
 def build_model(args, device: torch.device) -> UCFNet:
     return UCFNet(
-        match_channels=args.templates * GRID * GRID,
-        num_classes=len(CATEGORIES),
+        match_channels=args.match_k,
+        num_classes=len(category_names(args.dataset)),
         use_guidance=not args.no_guidance,
     ).to(device)
 
@@ -121,23 +130,17 @@ def adaptor_gamma(cls: torch.Tensor, cats: torch.Tensor, gamma0: float) -> torch
     return torch.where(correct, gamma0 - torch.sigmoid(true_logit), torch.full_like(true_logit, gamma0))
 
 
-def category_banks(cache_last: torch.Tensor, index: dict[int, np.ndarray]) -> dict[int, torch.Tensor]:
-    """L2-normalised last-layer patch tokens of every training image, per category: (n*h*w, C) half."""
+def layer_banks(cache: torch.Tensor, index: dict[int, np.ndarray]) -> dict[int, list[torch.Tensor]]:
+    """Whole-category memory banks: per category, per layer, the L2-normalised patch
+    tokens of every training image of that category, (n*h*w, C) float16."""
     banks = {}
     for c, idx in index.items():
-        t = cache_last[torch.as_tensor(idx, device=cache_last.device)].float()  # (n,C,h,w)
-        banks[c] = F.normalize(t.flatten(2).transpose(1, 2).reshape(-1, t.shape[1]), dim=1).half()
+        t = cache[torch.as_tensor(idx, device=cache.device)]  # (n,L,C,h,w) half
+        banks[c] = [
+            F.normalize(t[:, layer].float().flatten(2).transpose(1, 2).reshape(-1, t.shape[2]), dim=1).half()
+            for layer in range(t.shape[1])
+        ]
     return banks
-
-
-def full_bank_cost(q_last: torch.Tensor, cats: np.ndarray, banks: dict[int, torch.Tensor]) -> torch.Tensor:
-    """Min cosine cost of every query token against the whole category memory bank: (B,h,w)."""
-    b, _, h, w = q_last.shape
-    qn = F.normalize(q_last.float().flatten(2).transpose(1, 2), dim=-1).half()  # (B,hw,C)
-    out = torch.empty(b, h * w, device=q_last.device)
-    for j in range(b):
-        out[j] = 1.0 - (qn[j] @ banks[int(cats[j])].T).float().amax(dim=1)
-    return out.view(b, h, w)
 
 
 def train(args, device, backbone, cache, train_images, train_cats_np, index) -> UCFNet:
@@ -150,7 +153,7 @@ def train(args, device, backbone, cache, train_images, train_cats_np, index) -> 
     train_cats = torch.from_numpy(train_cats_np).long().to(device)
     fg_small = None
     if args.fg_restrict:
-        fg_small, fg_stats = foreground_masks(cache[:, -1], train_cats_np, CATEGORIES)
+        fg_small, fg_stats = foreground_masks(cache[:, -1], train_cats_np, category_names(args.dataset))
         print("foreground masks: " + json.dumps(fg_stats), flush=True)
     queries = np.arange(len(train_cats_np))
     if args.train_fraction < 1.0:
@@ -193,7 +196,7 @@ def train(args, device, backbone, cache, train_images, train_cats_np, index) -> 
             aug, masks = synth(images, fg)
             q = backbone(aug)
             t_idx = np.stack([train_templates(index, train_cats_np[i], args.templates, rng, exclude=int(i)) for i in idx])
-            volume, initial = build_cost_volume(q, gather_templates(cache, t_idx))
+            volume, initial = build_cost_volume(q, gather_templates(cache, t_idx), args.match_k)
             logits, cls = model(volume, initial, q)
             logits = F.interpolate(logits, size=images.shape[-2:], mode="bilinear", align_corners=False)
             cats = train_cats[idx_t]
@@ -231,8 +234,9 @@ def train(args, device, backbone, cache, train_images, train_cats_np, index) -> 
         if epoch in snapshots and epoch < args.epochs:
             snap_ckpt = args.checkpoint.with_name(f"{args.checkpoint.stem}_e{epoch}.pt")
             torch.save(state, snap_ckpt)
-            snap_out = args.output.with_name(f"{args.output.name}_e{epoch}")
-            if not (snap_out / "predictions.npz").exists():
+            snap_root = args.snapshot_dir if args.snapshot_dir is not None else args.output.parent
+            snap_out = snap_root / f"{args.output.name}_e{epoch}"
+            if not (snap_out / predictions_name(args.dataset)).exists():
                 predict(args, device, model, backbone, cache, train_cats_np, index, output=snap_out, epoch=epoch)
     return model
 
@@ -242,14 +246,15 @@ def predict(args, device, model, backbone, cache, train_cats_np, index, output: 
     output = args.output if output is None else output
     epoch = args.epochs if epoch is None else epoch
     model.eval()
-    images, cats, ids = load_test_inputs()
+    images, cats, ids = load_test_inputs(args.dataset)
     m = len(ids)
     maps = np.zeros((m, IMAGE_SIZE, IMAGE_SIZE), dtype=np.float32)
     scores = np.zeros(m, dtype=np.float32)
     comp_logits = comp_cost = None
-    train_desc = F.normalize(cache[:, -1].float().mean(dim=(2, 3)), dim=1)
-    banks = category_banks(cache[:, -1], index) if args.baseline_bank == "all" else None
-    draws = 1 if args.test_templates == "nearest" else args.test_draws
+    full = args.test_templates == "all"
+    banks = layer_banks(cache, index) if full else None
+    train_desc = F.normalize(cache[:, -1].float().mean(dim=(2, 3)), dim=1) if args.test_templates == "nearest" else None
+    draws = 1 if args.test_templates in ("nearest", "all") else args.test_draws
     bs = 16
     for s in range(0, m, bs):
         rows = range(s, min(s + bs, m))
@@ -257,18 +262,26 @@ def predict(args, device, model, backbone, cache, train_cats_np, index, output: 
         q = backbone(x)
         logits_draws, cost_draws = [], []
         for draw in range(draws):
-            if args.test_templates == "nearest":
-                desc = F.normalize(q[-1].mean(dim=(2, 3)), dim=1)
-                t_idx = np.stack([nearest_templates(index, cats[i], args.templates, desc[j], train_desc) for j, i in enumerate(rows)])
+            if full:
+                b = x.shape[0]
+                volume = initial = None
+                for c in np.unique(cats[s:s + bs]):
+                    sel = torch.as_tensor(np.flatnonzero(cats[s:s + bs] == c), device=device)
+                    v, i0 = bank_cost_volume([f[sel] for f in q], banks[int(c)], args.match_k)
+                    if volume is None:
+                        volume = v.new_zeros((b, *v.shape[1:]))
+                        initial = i0.new_zeros((b, *i0.shape[1:]))
+                    volume[sel], initial[sel] = v, i0
             else:
-                t_idx = np.stack([test_templates(index, cats[i], args.templates, args.template_seed, draw, ids[i]) for i in rows])
-            volume, initial = build_cost_volume(q, gather_templates(cache, t_idx))
+                if args.test_templates == "nearest":
+                    desc = F.normalize(q[-1].mean(dim=(2, 3)), dim=1)
+                    t_idx = np.stack([nearest_templates(index, cats[i], args.templates, desc[j], train_desc) for j, i in enumerate(rows)])
+                else:
+                    t_idx = np.stack([test_templates(index, cats[i], args.templates, args.template_seed, draw, ids[i]) for i in rows])
+                volume, initial = build_cost_volume(q, gather_templates(cache, t_idx), args.match_k)
             logits, _ = model(volume, initial, q)  # (B,2,16,16)
             logits_draws.append(logits.float())
-            if args.baseline_bank == "templates":
-                cost_draws.append(initial[:, -1].float())  # AnomalDF cost: last layer, min over the templates
-        if args.baseline_bank == "all":
-            cost_draws = [full_bank_cost(q[-1], cats[s:s + bs], banks)]
+            cost_draws.append(initial[:, -1].float())  # AnomalDF cost for the same templates: last layer, min over template tokens
         prob, base = combine(logits_draws, cost_draws)
         maps[s:s + bs], scores[s:s + bs] = fuse(prob, base, args.lam)
         lg = torch.stack(logits_draws, dim=1).cpu().numpy()
@@ -278,13 +291,16 @@ def predict(args, device, model, backbone, cache, train_cats_np, index, output: 
             comp_cost = np.zeros((m, *cs.shape[1:]), np.float32)
         comp_logits[s:s + bs] = lg
         comp_cost[s:s + bs] = cs
-    path = write_predictions(output, ids, scores, maps)
-    np.savez_compressed(output / COMPONENTS, ids=np.asarray(ids, np.int64), logits16=comp_logits, cost16=comp_cost)
-    meta = {
+    path = write_predictions(output, ids, scores, maps, args.dataset)
+    np.savez_compressed(output / components_name(args.dataset), ids=np.asarray(ids, np.int64), logits16=comp_logits, cost16=comp_cost)
+    meta_path = output / metadata_name(args.dataset)
+    meta_all = {
         "method": "AnomalDF+UCF (cost-volume filtering, fused with the AnomalDF response)",
+        "dataset": args.dataset,
         "backbone": "DINOv2 ViT-S/14, blocks 3/6/9/12, 224px",
-        "templates": args.templates,
-        "test_templates": args.test_templates,
+        "train_templates": args.templates,
+        "matching_dimension": f"{args.match_k} lowest costs per input token",
+        "test_templates": "whole category memory bank (full-shot)" if full else args.test_templates,
         "test_draws": draws,
         "template_seed": args.template_seed,
         "guidance": not args.no_guidance,
@@ -295,61 +311,71 @@ def predict(args, device, model, backbone, cache, train_cats_np, index, output: 
         "fg_restrict": args.fg_restrict,
         "train_fraction": args.train_fraction,
         "lambda": args.lam,
-        "baseline_bank": args.baseline_bank,
-        "anomaly_maps": "lambda * UCF anomaly probability + (1 - lambda) * AnomalDF map (same templates unless baseline_bank=all)",
+        "anomaly_maps": "lambda * UCF anomaly probability + (1 - lambda) * AnomalDF map for the same templates",
         "image_score": "mean of the top-250 values of the fused map",
         "arch_version": ARCH_VERSION,
         "trainable_params_M": sum(p.numel() for p in model.parameters()) / 1e6,
     }
-    (output / "metadata.json").write_text(json.dumps(meta, indent=2))
+    meta_path.write_text(json.dumps(meta_all, indent=2))
     print(f"wrote {path}", flush=True)
 
 
 def main() -> None:
     setup = load_setup()
     p = argparse.ArgumentParser()
+    p.add_argument("--dataset", choices=("mvtec", "visa"), default="mvtec")
+    p.add_argument("--device", default="cuda", help="torch device for this run (e.g. cuda:1)")
     p.add_argument("--epochs", type=int, default=setup["epochs"])
     p.add_argument("--batch-size", type=int, default=8)
     p.add_argument("--lr", type=float, default=setup["lr"])
     p.add_argument("--alpha", type=float, default=0.1)
     p.add_argument("--gamma0", type=float, default=3.0)
-    p.add_argument("--templates", type=int, default=3)
+    p.add_argument("--templates", type=int, default=3, help="random same-category templates per training input (paper: N = 3)")
+    p.add_argument("--match-k", type=int, default=MATCH_K, help="matching dimension: lowest costs kept per input token")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--no-guidance", action="store_true", help="ablation: drop both guidance streams")
     p.add_argument("--loss", choices=("full", "focal"), default="full", help="ablation: 'focal' trains with the focal loss alone")
     p.add_argument("--lam", type=float, default=LAMBDA, help="inference fusion weight of the UCF map (paper: 0.5)")
-    p.add_argument("--baseline-bank", choices=("templates", "all"), default="templates",
-                   help="baseline map fused at inference: same N templates (paper) or the whole category memory bank")
     p.add_argument("--output", type=Path, default=Path("outputs/anomaldf_ucf"))
     p.add_argument("--checkpoint", type=Path, default=Path("checkpoints/anomaldf_ucf_seed0.pt"))
-    p.add_argument("--test-draws", type=int, default=1, help="random template draws averaged at test time")
-    p.add_argument("--test-templates", choices=("random", "nearest"), default="random")
+    p.add_argument("--test-draws", type=int, default=1, help="random template draws averaged at test time (--test-templates random)")
+    p.add_argument("--test-templates", choices=("all", "random", "nearest"), default="all",
+                   help="all: whole category memory bank (paper full-shot, default); random / nearest: N = --templates images")
     p.add_argument("--template-seed", type=int, default=2026)
     p.add_argument("--fg-restrict", dest="fg_restrict", action="store_true", default=setup["fg_restrict"])
     p.add_argument("--no-fg-restrict", dest="fg_restrict", action="store_false")
     p.add_argument("--train-fraction", type=float, default=1.0, help="fraction of normal training images used as queries")
-    p.add_argument("--snapshot-epochs", default="", help="comma list: also save + predict at these epochs (<output>_e<k>)")
+    p.add_argument("--snapshot-epochs", default="", help="comma list: also save + predict at these epochs (<snapshot-dir>/<output name>_e<k>)")
+    p.add_argument("--snapshot-dir", type=Path, default=None, help="where snapshot predictions go (default: next to --output)")
     p.add_argument("--predict-only", action="store_true")
     p.add_argument("--allow-cpu", action="store_true")
     args = p.parse_args()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device(args.device if torch.cuda.is_available() else "cpu")
+    if device.type == "cuda" and device.index is not None:
+        torch.cuda.set_device(device)  # so library code that says "cuda" lands on this run's GPU
     if device.type != "cuda" and not args.allow_cpu:
         raise SystemExit("CUDA is not available; pass --allow-cpu to run (very slowly) on CPU")
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
     torch.backends.cudnn.benchmark = True
 
-    train_images_np, train_cats_np = load_train()
+    train_images_np, train_cats_np = load_train(args.dataset)
     train_images = torch.from_numpy(train_images_np).to(device)
     index = category_index(train_cats_np)
     backbone = DinoFeatures().to(device)
     cache = feature_cache(backbone, train_images)
+    print(f"dataset={args.dataset} train_images={len(train_cats_np)} categories={len(index)} device={device}", flush=True)
 
     if args.predict_only:
         state = torch.load(args.checkpoint, map_location=device, weights_only=False)
         if int(state["epoch"]) < args.epochs:
             raise SystemExit(f"{args.checkpoint} holds epoch {state['epoch']} < {args.epochs}")
+        cfg = state.get("config", {})
+        for key in ("arch", "dataset", "match_k", "no_guidance"):
+            want = ARCH_VERSION if key == "arch" else getattr(args, key)
+            if cfg.get(key) != want:
+                raise SystemExit(f"{args.checkpoint}: config {key}={cfg.get(key)!r} does not match {want!r}")
         model = build_model(args, device)
         model.load_state_dict(state["model"])
     else:

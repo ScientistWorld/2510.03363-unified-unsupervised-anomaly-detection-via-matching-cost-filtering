@@ -14,7 +14,13 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-OBJECT_CATEGORIES = ("bottle", "cable", "capsule", "hazelnut", "metal_nut", "pill", "screw", "toothbrush", "transistor")
+OBJECT_CATEGORIES = (
+    # MVTec-AD objects
+    "bottle", "cable", "capsule", "hazelnut", "metal_nut", "pill", "screw", "toothbrush", "transistor",
+    # VisA single-object categories (the authors' GLAD data code restricts these to the foreground;
+    # capsules and pcb1-4 use the whole image there and here)
+    "candle", "cashew", "chewinggum", "fryum", "macaroni1", "macaroni2", "pipe_fryum",
+)
 
 
 @torch.no_grad()

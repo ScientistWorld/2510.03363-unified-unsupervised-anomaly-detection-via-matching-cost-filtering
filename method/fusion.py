@@ -4,10 +4,11 @@
 
 M_ucf      softmax anomaly probability of the cost-filtering network, its 16x16
            logits bilinearly upsampled to the 224px input before the softmax.
-M_baseline the AnomalDF response for the same templates: the minimum cosine
-           matching cost of the last DINOv2 block (the last-layer slice of the
-           initial anomaly map), bilinearly upsampled and Gaussian-smoothed
-           (sigma 4) exactly as the AnomalDF baseline does.
+M_baseline the AnomalDF response for the same templates (the whole category
+           memory bank at full-shot inference): the minimum cosine matching
+           cost of the last DINOv2 block (the last-layer slice of the initial
+           anomaly map), bilinearly upsampled and Gaussian-smoothed (sigma 4)
+           exactly as the AnomalDF baseline does.
 Image score: mean of the top-250 values of the final map (paper Sec. III-F).
 
 predict() in method/train_ucf.py stores the per-draw components (16x16
@@ -15,7 +16,7 @@ network logits and 16x16 baseline costs) next to its predictions, so other
 lam values and multi-run ensembles (probabilities averaged over runs) are
 rebuilt with the same code, without re-running the network:
 
-    python -m method.fusion --runs DIR [DIR ...] --lam 0.5 --output OUT
+    python -m method.fusion --dataset mvtec|visa --runs DIR [DIR ...] --lam 0.5 --output OUT
 """
 from __future__ import annotations
 
@@ -27,7 +28,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from data.mvtec import IMAGE_SIZE, write_predictions
+from data.mvtec import IMAGE_SIZE, metadata_name, write_predictions
 from method.backbone import gaussian_blur
 from method.ucf_model import topk_mean
 
@@ -35,6 +36,10 @@ LAMBDA = 0.5  # paper default (Sec. IV-E6: gains peak for lambda in 0.4-0.6; 0.5
 TOPK = 250
 BASELINE_SIGMA = 4.0
 COMPONENTS = "components.npz"
+
+
+def components_name(dataset: str = "mvtec") -> str:
+    return COMPONENTS if dataset == "mvtec" else f"components_{dataset}.npz"
 
 
 def ucf_probability(logits16: torch.Tensor) -> torch.Tensor:
@@ -66,8 +71,8 @@ def fuse(prob: torch.Tensor, base: torch.Tensor, lam: float) -> tuple[np.ndarray
     return final.float().cpu().numpy(), scores
 
 
-def load_components(run: Path) -> dict[str, np.ndarray]:
-    with np.load(run / COMPONENTS) as d:
+def load_components(run: Path, dataset: str = "mvtec") -> dict[str, np.ndarray]:
+    with np.load(run / components_name(dataset)) as d:
         return {k: d[k] for k in d.files}
 
 
@@ -76,12 +81,13 @@ def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--runs", type=Path, nargs="+", required=True, help="prediction dirs holding components.npz")
     p.add_argument("--lam", type=float, default=LAMBDA)
+    p.add_argument("--dataset", choices=("mvtec", "visa"), default="mvtec")
     p.add_argument("--output", type=Path, required=True)
     args = p.parse_args()
     if not 0.0 <= args.lam <= 1.0:
         raise SystemExit("lam must lie in [0, 1]")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    comps = [load_components(r) for r in args.runs]
+    comps = [load_components(r, args.dataset) for r in args.runs]
     ids = comps[0]["ids"]
     for r, c in zip(args.runs, comps):
         if not np.array_equal(c["ids"], ids):
@@ -102,8 +108,9 @@ def main() -> None:
             cost_draws += [cost[:, d] for d in range(cost.shape[1])]
         prob, base = combine(logits_draws, cost_draws)
         maps[s:s + bs], scores[s:s + bs] = fuse(prob, base, args.lam)
-    path = write_predictions(args.output, ids, scores, maps)
-    meta = {
+    path = write_predictions(args.output, ids, scores, maps, args.dataset)
+    meta_path = args.output / metadata_name(args.dataset)
+    meta_all = {
         "method": "AnomalDF+UCF fused output rebuilt from stored components",
         "runs": [str(r) for r in args.runs],
         "lambda": args.lam,
@@ -111,7 +118,7 @@ def main() -> None:
         "baseline_shared_by_runs": bool(same_base),
         "image_score": f"mean of top-{TOPK} values of the fused map",
     }
-    (args.output / "metadata.json").write_text(json.dumps(meta, indent=2))
+    meta_path.write_text(json.dumps(meta_all, indent=2))
     print(f"wrote {path}", flush=True)
 
 

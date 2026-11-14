@@ -1,17 +1,21 @@
 #!/bin/bash
 # Development slice: score every method on disk against the visible
-# development answers in eval/train/data/dev_answers.npz. The methods are every
-# directory under outputs/ (outputs/<method>/predictions.npz) plus every method
-# named in scoring/reference.json or scoring/scores.json. A method without a
-# valid artifact - including one whose directory is missing - is scored as
-# failed (worst value on every metric), never skipped.
+# development answers in eval/train/data/ ({dev,visa_dev}_answers.npz), in both
+# experiments: MVTec-AD (outputs/<method>/predictions.npz) and VisA
+# (outputs/<method>/predictions_visa.npz). The methods are every directory
+# under outputs/ plus every method named in scoring/reference.json or
+# scoring/scores.json. A method without a valid artifact for an experiment -
+# including one whose directory is missing - is scored as failed there (worst
+# value on every metric), never skipped.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-if [ ! -f eval/train/data/dev_answers.npz ]; then
-  echo "eval/train/data/dev_answers.npz missing; run scripts/prepare_data.sh" >&2
-  exit 1
-fi
+for f in eval/train/data/dev_answers.npz eval/train/data/visa_dev_answers.npz; do
+  if [ ! -f "$f" ]; then
+    echo "$f missing; run scripts/prepare_data.sh" >&2
+    exit 1
+  fi
+done
 if [ "$#" -eq 0 ]; then
   artifacts=()
   while IFS= read -r name; do

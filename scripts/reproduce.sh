@@ -1,6 +1,8 @@
 #!/bin/bash
 # Reproduce the reference end to end (after scripts/download.sh): data
-# preparation, AnomalDF baseline, AnomalDF+UCF training, and both evaluations.
+# preparation (MVTec-AD and VisA), the full-shot AnomalDF baseline,
+# AnomalDF+UCF training (seed 0, one model per dataset) with full-shot
+# inference, and both evaluations.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 bash scripts/prepare_data.sh

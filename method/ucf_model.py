@@ -2,18 +2,25 @@
 
 Pipeline (paper Sec. III-D..F):
   1. anomaly cost volume: global cosine matching of every input patch token
-     against every patch token of N normal templates, per feature layer
-     (Eq. 2, 6):  C(j, n, l, i) = 1 - cos(f_I^{i,l}, f_T^{n,j,l})
-     -> volume (B, D*N, L, H', W') with D = H'W' matching positions as
-     channels and the L feature layers as 3D depth;
-  2. initial multi-layer anomaly map M = global min over the D*N axis;
+     against every patch token of the normal templates, per feature layer
+     (Eq. 2, 6):  C(j, n, l, i) = 1 - cos(f_I^{i,l}, f_T^{n,j,l}).
+     As in the authors' released code (CostFilter-AD, `pre_min_dim`), the
+     matching dimension is fixed to K = D = H'W' entries: for every input
+     token and layer the K lowest costs over all D*N template tokens are kept,
+     in template-token order. The volume therefore has the same shape for
+     N = 3 random templates (training, paper default) and for the whole
+     category memory bank (full-shot inference, paper Table XXIV), which is
+     how a model trained with N = 3 is applied to the full bank without
+     retraining. -> volume (B, K, L, H', W'), the L feature layers as depth;
+  2. initial multi-layer anomaly map M = global min over the matching axis
+     (identical to the min over all template tokens);
   3. 3D U-Net filtering with residual channel-spatial attention (RCSA, Eq. 7)
      guided by two streams: projected input features h(f_I^l) and the
      projected initial map h(M);
   4. class-aware adaptor: pooled deepest features -> category logits that
      modulate the focal-loss focusing parameter;
   5. the last decoder layer is a 3D conv that reduces depth L -> 1 and
-     returns the filtered cost volume in the matching dimension (D*N
+     returns the filtered cost volume in the matching dimension (K
      channels), as a residual correction of the input (last-layer) costs;
      global min pooling along the matching dimension, a conv and a softmax
      give the normal/anomaly map: M = softmax(conv(min(x))).
@@ -24,25 +31,56 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-ARCH_VERSION = 2  # 2: filtered volume keeps the D*N matching channels (residual on the input costs)
+ARCH_VERSION = 3  # 3: matching dimension = the K lowest costs over all template tokens (authors' code)
+MATCH_K = 256  # K = D = H'W' (16x16 patch grid at 224 px)
 
 
-def build_cost_volume(query_feats: list[torch.Tensor], template_feats: list[torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
-    """query_feats: L x (B,C,H,W); template_feats: L x (B,N,C,H,W).
+def lowest_costs(cost: torch.Tensor, k: int) -> torch.Tensor:
+    """cost (B, T, HW) over T template tokens -> the k lowest per input token, kept in template-token order (B, k, HW)."""
+    if cost.shape[1] < k:
+        raise ValueError(f"need at least {k} template tokens, got {cost.shape[1]}")
+    idx = cost.topk(k, dim=1, largest=False, sorted=False).indices
+    return cost.gather(1, idx.sort(dim=1).values)
 
-    Returns volume (B, N*H*W, L, H, W) and initial map (B, L, H, W).
+
+def build_cost_volume(query_feats: list[torch.Tensor], template_feats: list[torch.Tensor], k: int = MATCH_K) -> tuple[torch.Tensor, torch.Tensor]:
+    """query_feats: L x (B,C,H,W); template_feats: L x (B,N,C,H,W) (N templates per input).
+
+    Returns volume (B, k, L, H, W) and initial map (B, L, H, W).
     """
     layers = []
     for q, t in zip(query_feats, template_feats):
         b, _, h, w = q.shape
-        n = t.shape[1]
         qn = F.normalize(q.flatten(2), dim=1)  # (B,C,HW)
         tn = F.normalize(t.flatten(3), dim=2)  # (B,N,C,D)
         sim = torch.einsum("bci,bncj->bnji", qn, tn)  # (B,N,D,HW)
-        layers.append((1.0 - sim).reshape(b, n * tn.shape[-1], h, w))
+        cost = (1.0 - sim).reshape(b, -1, h * w)  # (B, N*D, HW)
+        layers.append(lowest_costs(cost, k).reshape(b, k, h, w))
     volume = torch.stack(layers, dim=2)
     initial = volume.amin(dim=1)
     return volume, initial
+
+
+def bank_cost_volume(query_feats: list[torch.Tensor], banks: list[torch.Tensor], k: int = MATCH_K) -> tuple[torch.Tensor, torch.Tensor]:
+    """Full-shot volume: inputs of ONE category against its whole memory bank.
+
+    query_feats: L x (B,C,H,W); banks: L x (T,C) L2-normalised template tokens
+    (all training images of the category). Returns (B, k, L, H, W) and (B, L, H, W).
+    """
+    layers = []
+    for q, bank in zip(query_feats, banks):
+        b, _, h, w = q.shape
+        qn = F.normalize(q.flatten(2).float(), dim=1).to(bank.dtype)  # (B,C,HW)
+        rows = []
+        for j in range(b):  # one input at a time bounds memory (T can exceed 2e5 tokens)
+            cost = 1.0 - (qn[j].T @ bank.T).float()  # (HW, T): top-k along the contiguous last axis
+            if cost.shape[1] < k:
+                raise ValueError(f"need at least {k} template tokens, got {cost.shape[1]}")
+            idx = cost.topk(k, dim=1, largest=False, sorted=False).indices.sort(dim=1).values
+            rows.append(cost.gather(1, idx).T)  # (k, HW), template-token order as in lowest_costs
+        layers.append(torch.stack(rows).reshape(b, k, h, w))
+    volume = torch.stack(layers, dim=2)
+    return volume, volume.amin(dim=1)
 
 
 def _norm(c: int) -> nn.GroupNorm:
@@ -104,7 +142,7 @@ class UCFNet(nn.Module):
         self.classifier = nn.Linear(w2, num_classes)  # class-aware adaptor
         self.up1 = ConvBlock3d(w2 + w1, w1)
         self.up0 = ConvBlock3d(w1 + w0, w0)
-        # L -> 1, back to the D*N matching channels; zero init = start from the raw costs
+        # L -> 1, back to the K matching channels; zero init = start from the raw costs
         self.refine = nn.Conv3d(w0, match_channels, kernel_size=(depth, 1, 1))
         nn.init.zeros_(self.refine.weight)
         nn.init.zeros_(self.refine.bias)
@@ -131,7 +169,7 @@ class UCFNet(nn.Module):
         u1 = self.up1(torch.cat([u1, x1], dim=1))
         u0 = F.interpolate(u1, size=x0.shape[-3:], mode="trilinear", align_corners=False)
         u0 = self.up0(torch.cat([u0, x0], dim=1))
-        filtered = volume[:, :, -1] + self.refine(u0)[:, :, 0]  # (B, D*N, H, W) filtered cost volume
+        filtered = volume[:, :, -1] + self.refine(u0)[:, :, 0]  # (B, K, H, W) filtered cost volume
         pooled = filtered.amin(dim=1, keepdim=True)  # global min pooling along the matching dimension
         logits = self.head(pooled)
         return logits, cls

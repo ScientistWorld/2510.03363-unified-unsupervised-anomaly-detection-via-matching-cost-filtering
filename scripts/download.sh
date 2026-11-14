@@ -4,8 +4,8 @@
 # from an empty data/downloads/ and an empty eval/test/downloads/ on any node
 # with internet access.
 #
-# Estimated download size: ~6.0 GB (MVTec-AD 5.26 GB, DTD 0.63 GB, DINOv2 0.09 GB)
-# Estimated disk usage after preparation: ~7 GB
+# Estimated download size: ~7.9 GB (MVTec-AD 5.26 GB, VisA 1.93 GB, DTD 0.63 GB, DINOv2 0.09 GB)
+# Estimated disk usage after preparation: ~11 GB
 #
 # Layout:
 #   eval/test/downloads/mvtec_anomaly_detection.tar.xz
@@ -13,6 +13,10 @@
 #       ground truth, so it lives ONLY under eval/test/ (gitignored). The
 #       preparation step (scripts/prepare_data.sh) turns it into anonymised
 #       test inputs under data/downloads/ and hidden answers under eval/test/.
+#   eval/test/downloads/VisA_20220922.tar
+#       Official VisA archive (CC BY 4.0, Amazon). It contains the test masks,
+#       so it also lives ONLY under eval/test/ (gitignored); scripts/prepare_data.sh
+#       builds the anonymised VisA inputs and hidden answers from it.
 #   data/downloads/dtd/dtd-r1.0.1.tar.gz
 #       Describable Textures Dataset, used only as an anomaly-synthesis source.
 #   data/downloads/dinov2/dinov2_vits14_pretrain.pth
@@ -25,6 +29,8 @@ cd "$(dirname "$0")/.."
 
 MVTEC_URL="https://huggingface.co/datasets/micguida1/mvtech_anomaly_detection/resolve/main/mvtec_anomaly_detection.tar.xz"
 MVTEC_SHA256="cf4313b13603bec67abb49ca959488f7eedce2a9f7795ec54446c649ac98cd3d"   # official MVTec-AD archive hash
+VISA_URL="https://amazon-visual-anomaly.s3.us-west-2.amazonaws.com/VisA_20220922.tar"
+VISA_SHA256="2eb8690c803ab37de0324772964100169ec8ba1fa3f7e94291c9ca673f40f362"
 DTD_URL="https://www.robots.ox.ac.uk/~vgg/data/dtd/download/dtd-r1.0.1.tar.gz"
 DINO_URL="https://dl.fbaipublicfiles.com/dinov2/dinov2_vits14/dinov2_vits14_pretrain.pth"
 DINO_REPO="https://github.com/facebookresearch/dinov2.git"
@@ -61,10 +67,18 @@ if [ ! -f "$MVTEC_TAR.sha256ok" ]; then
   touch "$MVTEC_TAR.sha256ok"
 fi
 
-# 2) DTD textures (anomaly synthesis source for training only)
+# 2) VisA (answers inside -> eval/test/downloads only)
+VISA_TAR=eval/test/downloads/VisA_20220922.tar
+fetch "$VISA_URL" "$VISA_TAR"
+if [ ! -f "$VISA_TAR.sha256ok" ]; then
+  echo "$VISA_SHA256  $VISA_TAR" | sha256sum -c -
+  touch "$VISA_TAR.sha256ok"
+fi
+
+# 3) DTD textures (anomaly synthesis source for training only)
 fetch "$DTD_URL" data/downloads/dtd/dtd-r1.0.1.tar.gz
 
-# 3) DINOv2 ViT-S/14 weights + model code at a pinned commit
+# 4) DINOv2 ViT-S/14 weights + model code at a pinned commit
 fetch "$DINO_URL" data/downloads/dinov2/dinov2_vits14_pretrain.pth
 if [ ! -f data/downloads/dinov2/repo/dinov2/models/vision_transformer.py ]; then
   rm -rf data/downloads/dinov2/repo

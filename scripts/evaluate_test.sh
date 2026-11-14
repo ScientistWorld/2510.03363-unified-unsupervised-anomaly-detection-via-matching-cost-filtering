@@ -1,15 +1,20 @@
 #!/bin/bash
 # Hidden test: score every method on disk against the answers held in
-# eval/test/ (rebuilt from the archive if absent). The methods are every
-# directory under outputs/ (outputs/<method>/predictions.npz) plus every method
-# named in scoring/reference.json or scoring/scores.json. A method without a
-# valid artifact - including one whose directory is missing - is scored as
-# failed (worst value on every metric), never skipped.
+# eval/test/ (rebuilt from the archives if absent), in both experiments:
+# MVTec-AD (outputs/<method>/predictions.npz) and VisA
+# (outputs/<method>/predictions_visa.npz). The methods are every directory
+# under outputs/ plus every method named in scoring/reference.json or
+# scoring/scores.json. A method without a valid artifact for an experiment -
+# including one whose directory is missing - is scored as failed there (worst
+# value on every metric), never skipped.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 if [ ! -f eval/test/downloads/test_answers.npz ]; then
   python -m eval.test.prepare_mvtec
+fi
+if [ ! -f eval/test/downloads/visa_test_answers.npz ]; then
+  python -m eval.test.prepare_visa
 fi
 if [ "$#" -eq 0 ]; then
   artifacts=()
