@@ -1,0 +1,206 @@
+{
+  "_answers": {
+    "rgb_mvtec_multiclass": {
+      "anomalous": 614,
+      "artifact": "outputs/<method>/predictions.npz",
+      "categories": 15,
+      "dataset": "MVTec-AD",
+      "images": 845,
+      "map_size": 224,
+      "normal": 231
+    },
+    "rgb_visa_multiclass": {
+      "anomalous": 413,
+      "artifact": "outputs/<method>/predictions_visa.npz",
+      "categories": 12,
+      "dataset": "VisA",
+      "images": 734,
+      "map_size": 224,
+      "normal": 321
+    }
+  },
+  "_protocol": "every metric is computed per category, then averaged over the dataset's categories with equal weight",
+  "_slice": "train",
+  "_task_gate": "per experiment, class-mean image_auroc and pixel_auroc must both be >= 70.0; otherwise every metric of that experiment is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_answers": {
+        "anomalous": 614,
+        "artifact": "outputs/<method>/predictions.npz",
+        "categories": 15,
+        "dataset": "MVTec-AD",
+        "images": 845,
+        "map_size": 224,
+        "normal": 231
+      },
+      "_diagnostics": {
+        "shortcut_oversized_header": {}
+      },
+      "_slice": "train",
+      "_sources": {
+        "shortcut_oversized_header": "redteam/final/outputs/shortcut_oversized_header/predictions.npz"
+      },
+      "_validity": {
+        "shortcut_oversized_header": "failed: anomaly_maps must have shape (1725, 224, 224) (one row per test input id)"
+      },
+      "results": {
+        "shortcut_oversized_header": {
+          "image_ap": 0.0,
+          "image_auroc": 0.0,
+          "image_f1_max": 0.0,
+          "pixel_ap": 0.0,
+          "pixel_aupro": 0.0,
+          "pixel_auroc": 0.0,
+          "pixel_f1_max": 0.0
+        }
+      }
+    },
+    "rgb_visa_multiclass": {
+      "_answers": {
+        "anomalous": 413,
+        "artifact": "outputs/<method>/predictions_visa.npz",
+        "categories": 12,
+        "dataset": "VisA",
+        "images": 734,
+        "map_size": 224,
+        "normal": 321
+      },
+      "_diagnostics": {
+        "shortcut_oversized_header": {
+          "per_category": {
+            "candle": {
+              "image_ap": 98.4653,
+              "image_auroc": 98.1481,
+              "image_f1_max": 95.8904,
+              "pixel_ap": 35.6297,
+              "pixel_aupro": 92.7499,
+              "pixel_auroc": 98.5959,
+              "pixel_f1_max": 43.8338
+            },
+            "capsules": {
+              "image_ap": 93.6528,
+              "image_auroc": 88.7879,
+              "image_f1_max": 87.3239,
+              "pixel_ap": 18.991,
+              "pixel_aupro": 74.6856,
+              "pixel_auroc": 96.6148,
+              "pixel_f1_max": 24.5772
+            },
+            "cashew": {
+              "image_ap": 98.3272,
+              "image_auroc": 96.4349,
+              "image_f1_max": 93.9394,
+              "pixel_ap": 78.6041,
+              "pixel_aupro": 81.6762,
+              "pixel_auroc": 99.2195,
+              "pixel_f1_max": 75.4185
+            },
+            "chewinggum": {
+              "image_ap": 95.9944,
+              "image_auroc": 91.1765,
+              "image_f1_max": 88.0,
+              "pixel_ap": 39.7778,
+              "pixel_aupro": 78.7152,
+              "pixel_auroc": 92.4198,
+              "pixel_f1_max": 45.5493
+            },
+            "fryum": {
+              "image_ap": 89.3854,
+              "image_auroc": 78.0749,
+              "image_f1_max": 83.5443,
+              "pixel_ap": 18.5847,
+              "pixel_aupro": 56.736,
+              "pixel_auroc": 93.2866,
+              "pixel_f1_max": 31.075
+            },
+            "macaroni1": {
+              "image_ap": 84.1728,
+              "image_auroc": 82.6954,
+              "image_f1_max": 80.8511,
+              "pixel_ap": 11.4142,
+              "pixel_aupro": 51.2844,
+              "pixel_auroc": 82.7443,
+              "pixel_f1_max": 19.1225
+            },
+            "macaroni2": {
+              "image_ap": 87.3217,
+              "image_auroc": 86.8141,
+              "image_f1_max": 86.0759,
+              "pixel_ap": 1.4523,
+              "pixel_aupro": 70.3326,
+              "pixel_auroc": 89.9477,
+              "pixel_f1_max": 6.409
+            },
+            "pcb1": {
+              "image_ap": 89.2549,
+              "image_auroc": 88.9205,
+              "image_f1_max": 81.0127,
+              "pixel_ap": 80.7592,
+              "pixel_aupro": 76.9153,
+              "pixel_auroc": 99.2642,
+              "pixel_f1_max": 79.9259
+            },
+            "pcb2": {
+              "image_ap": 95.3603,
+              "image_auroc": 93.9394,
+              "image_f1_max": 90.0,
+              "pixel_ap": 10.033,
+              "pixel_aupro": 57.2209,
+              "pixel_auroc": 93.136,
+              "pixel_f1_max": 17.4145
+            },
+            "pcb3": {
+              "image_ap": 93.7264,
+              "image_auroc": 90.4799,
+              "image_f1_max": 85.3333,
+              "pixel_ap": 9.4533,
+              "pixel_aupro": 61.6135,
+              "pixel_auroc": 93.4435,
+              "pixel_f1_max": 14.2986
+            },
+            "pcb4": {
+              "image_ap": 93.6469,
+              "image_auroc": 93.4314,
+              "image_f1_max": 84.8485,
+              "pixel_ap": 34.1935,
+              "pixel_aupro": 77.1264,
+              "pixel_auroc": 95.6226,
+              "pixel_f1_max": 39.8556
+            },
+            "pipe_fryum": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 75.8131,
+              "pixel_aupro": 94.5674,
+              "pixel_auroc": 98.8228,
+              "pixel_f1_max": 64.0969
+            }
+          },
+          "pooled_over_categories": {
+            "image_auroc": 90.59914160500252,
+            "pixel_auroc": 97.66276145974227
+          }
+        }
+      },
+      "_slice": "train",
+      "_sources": {
+        "shortcut_oversized_header": "redteam/final/outputs/shortcut_oversized_header/predictions_visa.npz"
+      },
+      "_validity": {
+        "shortcut_oversized_header": "ok"
+      },
+      "results": {
+        "shortcut_oversized_header": {
+          "image_ap": 93.27567233524485,
+          "image_auroc": 90.74190502128454,
+          "image_f1_max": 88.06829516369002,
+          "pixel_ap": 34.558824743968835,
+          "pixel_aupro": 72.80196162183016,
+          "pixel_auroc": 94.4264782638315,
+          "pixel_f1_max": 38.464733549803725
+        }
+      }
+    }
+  }
+}

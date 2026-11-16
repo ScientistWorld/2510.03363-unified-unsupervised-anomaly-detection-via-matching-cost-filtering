@@ -1,0 +1,348 @@
+{
+  "_answers": {
+    "rgb_mvtec_multiclass": {
+      "anomalous": 644,
+      "artifact": "outputs/<method>/predictions.npz",
+      "categories": 15,
+      "dataset": "MVTec-AD",
+      "images": 880,
+      "map_size": 224,
+      "normal": 236
+    },
+    "rgb_visa_multiclass": {
+      "anomalous": 787,
+      "artifact": "outputs/<method>/predictions_visa.npz",
+      "categories": 12,
+      "dataset": "VisA",
+      "images": 1428,
+      "map_size": 224,
+      "normal": 641
+    }
+  },
+  "_protocol": "every metric is computed per category, then averaged over the dataset's categories with equal weight",
+  "_slice": "test",
+  "_task_gate": "per experiment, class-mean image_auroc and pixel_auroc must both be >= 70.0; otherwise every metric of that experiment is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_answers": {
+        "anomalous": 644,
+        "artifact": "outputs/<method>/predictions.npz",
+        "categories": 15,
+        "dataset": "MVTec-AD",
+        "images": 880,
+        "map_size": 224,
+        "normal": 236
+      },
+      "_diagnostics": {
+        "shortcut_negative_costs": {
+          "per_category": {
+            "bottle": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 88.7399,
+              "pixel_aupro": 96.9008,
+              "pixel_auroc": 98.9775,
+              "pixel_f1_max": 81.5263
+            },
+            "cable": {
+              "image_ap": 97.0728,
+              "image_auroc": 94.5277,
+              "image_f1_max": 92.6316,
+              "pixel_ap": 45.0835,
+              "pixel_aupro": 85.3825,
+              "pixel_auroc": 94.0673,
+              "pixel_f1_max": 49.5972
+            },
+            "capsule": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 55.4668,
+              "pixel_aupro": 89.8909,
+              "pixel_auroc": 98.9548,
+              "pixel_f1_max": 58.0593
+            },
+            "carpet": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 80.8949,
+              "pixel_aupro": 98.8463,
+              "pixel_auroc": 99.7897,
+              "pixel_f1_max": 79.6429
+            },
+            "grid": {
+              "image_ap": 99.661,
+              "image_auroc": 98.9305,
+              "image_f1_max": 97.1429,
+              "pixel_ap": 42.3263,
+              "pixel_aupro": 97.5029,
+              "pixel_auroc": 99.3175,
+              "pixel_f1_max": 49.3652
+            },
+            "hazelnut": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 90.993,
+              "pixel_aupro": 96.3736,
+              "pixel_auroc": 99.6488,
+              "pixel_f1_max": 82.6997
+            },
+            "leather": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 69.2037,
+              "pixel_aupro": 98.5937,
+              "pixel_auroc": 99.7768,
+              "pixel_f1_max": 68.6168
+            },
+            "metal_nut": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 78.2143,
+              "pixel_aupro": 98.3491,
+              "pixel_auroc": 99.4293,
+              "pixel_f1_max": 78.0095
+            },
+            "pill": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 59.3202,
+              "pixel_aupro": 96.3909,
+              "pixel_auroc": 98.1272,
+              "pixel_f1_max": 56.9213
+            },
+            "screw": {
+              "image_ap": 84.358,
+              "image_auroc": 71.6298,
+              "image_f1_max": 89.7959,
+              "pixel_ap": 5.0065,
+              "pixel_aupro": 62.7082,
+              "pixel_auroc": 83.8005,
+              "pixel_f1_max": 14.0031
+            },
+            "tile": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 91.1053,
+              "pixel_aupro": 95.2675,
+              "pixel_auroc": 99.37,
+              "pixel_f1_max": 86.2522
+            },
+            "toothbrush": {
+              "image_ap": 98.8889,
+              "image_auroc": 96.6667,
+              "image_f1_max": 96.5517,
+              "pixel_ap": 67.8615,
+              "pixel_aupro": 89.8399,
+              "pixel_auroc": 99.0858,
+              "pixel_f1_max": 71.5172
+            },
+            "transistor": {
+              "image_ap": 95.0946,
+              "image_auroc": 96.1667,
+              "image_f1_max": 92.6829,
+              "pixel_ap": 19.0172,
+              "pixel_aupro": 69.227,
+              "pixel_auroc": 84.7582,
+              "pixel_f1_max": 27.5786
+            },
+            "wood": {
+              "image_ap": 98.7326,
+              "image_auroc": 96.5517,
+              "image_f1_max": 96.6667,
+              "pixel_ap": 72.1324,
+              "pixel_aupro": 94.3081,
+              "pixel_auroc": 95.9939,
+              "pixel_f1_max": 64.9219
+            },
+            "zipper": {
+              "image_ap": 99.7014,
+              "image_auroc": 98.694,
+              "image_f1_max": 97.0588,
+              "pixel_ap": 66.7876,
+              "pixel_aupro": 93.5904,
+              "pixel_auroc": 97.8143,
+              "pixel_f1_max": 64.2958
+            }
+          },
+          "pooled_over_categories": {
+            "image_auroc": 90.70362669754711,
+            "pixel_auroc": 97.58549966741461
+          }
+        }
+      },
+      "_slice": "test",
+      "_sources": {
+        "shortcut_negative_costs": "redteam/final/outputs/shortcut_negative_costs/predictions.npz"
+      },
+      "_validity": {
+        "shortcut_negative_costs": "ok"
+      },
+      "results": {
+        "shortcut_negative_costs": {
+          "image_ap": 98.23394615146876,
+          "image_auroc": 96.87780556062664,
+          "image_f1_max": 97.50203304139002,
+          "pixel_ap": 62.14353398963312,
+          "pixel_aupro": 90.87813126096324,
+          "pixel_auroc": 96.59409741363176,
+          "pixel_f1_max": 62.20047458114972
+        }
+      }
+    },
+    "rgb_visa_multiclass": {
+      "_answers": {
+        "anomalous": 787,
+        "artifact": "outputs/<method>/predictions_visa.npz",
+        "categories": 12,
+        "dataset": "VisA",
+        "images": 1428,
+        "map_size": 224,
+        "normal": 641
+      },
+      "_diagnostics": {
+        "shortcut_negative_costs": {
+          "per_category": {
+            "candle": {
+              "image_ap": 96.399,
+              "image_auroc": 95.569,
+              "image_f1_max": 90.625,
+              "pixel_ap": 10.5159,
+              "pixel_aupro": 95.0835,
+              "pixel_auroc": 98.3249,
+              "pixel_f1_max": 23.4985
+            },
+            "capsules": {
+              "image_ap": 95.1629,
+              "image_auroc": 90.4851,
+              "image_f1_max": 86.7133,
+              "pixel_ap": 36.3863,
+              "pixel_aupro": 77.7429,
+              "pixel_auroc": 97.6551,
+              "pixel_f1_max": 41.6168
+            },
+            "cashew": {
+              "image_ap": 96.0983,
+              "image_auroc": 91.5423,
+              "image_f1_max": 88.7218,
+              "pixel_ap": 35.062,
+              "pixel_aupro": 88.7404,
+              "pixel_auroc": 96.5878,
+              "pixel_f1_max": 37.3405
+            },
+            "chewinggum": {
+              "image_ap": 100.0,
+              "image_auroc": 100.0,
+              "image_f1_max": 100.0,
+              "pixel_ap": 73.2812,
+              "pixel_aupro": 86.211,
+              "pixel_auroc": 99.222,
+              "pixel_f1_max": 68.0514
+            },
+            "fryum": {
+              "image_ap": 98.1764,
+              "image_auroc": 95.5224,
+              "image_f1_max": 93.75,
+              "pixel_ap": 41.1502,
+              "pixel_aupro": 75.9169,
+              "pixel_auroc": 92.9875,
+              "pixel_f1_max": 43.6546
+            },
+            "macaroni1": {
+              "image_ap": 77.3666,
+              "image_auroc": 73.9769,
+              "image_f1_max": 71.9512,
+              "pixel_ap": 3.9011,
+              "pixel_aupro": 48.649,
+              "pixel_auroc": 76.9702,
+              "pixel_f1_max": 16.1737
+            },
+            "macaroni2": {
+              "image_ap": 64.8544,
+              "image_auroc": 67.0694,
+              "image_f1_max": 69.3182,
+              "pixel_ap": 6.325,
+              "pixel_aupro": 80.4582,
+              "pixel_auroc": 95.3891,
+              "pixel_f1_max": 12.7237
+            },
+            "pcb1": {
+              "image_ap": 85.8354,
+              "image_auroc": 87.2256,
+              "image_f1_max": 82.3529,
+              "pixel_ap": 21.9615,
+              "pixel_aupro": 71.7695,
+              "pixel_auroc": 96.2775,
+              "pixel_f1_max": 25.5256
+            },
+            "pcb2": {
+              "image_ap": 83.9818,
+              "image_auroc": 82.1564,
+              "image_f1_max": 76.5101,
+              "pixel_ap": 10.0739,
+              "pixel_aupro": 64.2724,
+              "pixel_auroc": 91.9998,
+              "pixel_f1_max": 18.3232
+            },
+            "pcb3": {
+              "image_ap": 88.0518,
+              "image_auroc": 86.4949,
+              "image_f1_max": 77.551,
+              "pixel_ap": 39.2145,
+              "pixel_aupro": 65.1946,
+              "pixel_auroc": 96.1714,
+              "pixel_f1_max": 45.2063
+            },
+            "pcb4": {
+              "image_ap": 95.4032,
+              "image_auroc": 94.3923,
+              "image_f1_max": 87.0748,
+              "pixel_ap": 38.9984,
+              "pixel_aupro": 74.7773,
+              "pixel_auroc": 96.7342,
+              "pixel_f1_max": 41.8921
+            },
+            "pipe_fryum": {
+              "image_ap": 99.5869,
+              "image_auroc": 98.911,
+              "image_f1_max": 99.2126,
+              "pixel_ap": 35.5378,
+              "pixel_aupro": 94.4365,
+              "pixel_auroc": 99.2272,
+              "pixel_f1_max": 40.5675
+            }
+          },
+          "pooled_over_categories": {
+            "image_auroc": 88.37386786449858,
+            "pixel_auroc": 94.2047926516362
+          }
+        }
+      },
+      "_slice": "test",
+      "_sources": {
+        "shortcut_negative_costs": "redteam/final/outputs/shortcut_negative_costs/predictions_visa.npz"
+      },
+      "_validity": {
+        "shortcut_negative_costs": "ok"
+      },
+      "results": {
+        "shortcut_negative_costs": {
+          "image_ap": 90.07638586697838,
+          "image_auroc": 88.61211316958115,
+          "image_f1_max": 85.31507913423661,
+          "pixel_ap": 29.367321152873426,
+          "pixel_aupro": 76.93767542196396,
+          "pixel_auroc": 94.79555365256779,
+          "pixel_f1_max": 34.54781572390062
+        }
+      }
+    }
+  }
+}

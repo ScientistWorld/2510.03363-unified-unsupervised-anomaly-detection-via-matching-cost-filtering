@@ -1,0 +1,91 @@
+{
+  "_answers": {
+    "rgb_mvtec_multiclass": {
+      "anomalous": 644,
+      "artifact": "outputs/<method>/predictions.npz",
+      "categories": 15,
+      "dataset": "MVTec-AD",
+      "images": 880,
+      "map_size": 224,
+      "normal": 236
+    },
+    "rgb_visa_multiclass": {
+      "anomalous": 787,
+      "artifact": "outputs/<method>/predictions_visa.npz",
+      "categories": 12,
+      "dataset": "VisA",
+      "images": 1428,
+      "map_size": 224,
+      "normal": 641
+    }
+  },
+  "_protocol": "every metric is computed per category, then averaged over the dataset's categories with equal weight",
+  "_slice": "test",
+  "_task_gate": "per experiment, class-mean image_auroc and pixel_auroc must both be >= 70.0; otherwise every metric of that experiment is 0",
+  "experiments": {
+    "rgb_mvtec_multiclass": {
+      "_answers": {
+        "anomalous": 644,
+        "artifact": "outputs/<method>/predictions.npz",
+        "categories": 15,
+        "dataset": "MVTec-AD",
+        "images": 880,
+        "map_size": 224,
+        "normal": 236
+      },
+      "_diagnostics": {
+        "shortcut_missing_artifact": {}
+      },
+      "_slice": "test",
+      "_sources": {
+        "shortcut_missing_artifact": "redteam/final/outputs/shortcut_missing_artifact/predictions.npz"
+      },
+      "_validity": {
+        "shortcut_missing_artifact": "failed: no predictions.npz"
+      },
+      "results": {
+        "shortcut_missing_artifact": {
+          "image_ap": 0.0,
+          "image_auroc": 0.0,
+          "image_f1_max": 0.0,
+          "pixel_ap": 0.0,
+          "pixel_aupro": 0.0,
+          "pixel_auroc": 0.0,
+          "pixel_f1_max": 0.0
+        }
+      }
+    },
+    "rgb_visa_multiclass": {
+      "_answers": {
+        "anomalous": 787,
+        "artifact": "outputs/<method>/predictions_visa.npz",
+        "categories": 12,
+        "dataset": "VisA",
+        "images": 1428,
+        "map_size": 224,
+        "normal": 641
+      },
+      "_diagnostics": {
+        "shortcut_missing_artifact": {}
+      },
+      "_slice": "test",
+      "_sources": {
+        "shortcut_missing_artifact": "redteam/final/outputs/shortcut_missing_artifact/predictions_visa.npz"
+      },
+      "_validity": {
+        "shortcut_missing_artifact": "failed: no predictions_visa.npz"
+      },
+      "results": {
+        "shortcut_missing_artifact": {
+          "image_ap": 0.0,
+          "image_auroc": 0.0,
+          "image_f1_max": 0.0,
+          "pixel_ap": 0.0,
+          "pixel_aupro": 0.0,
+          "pixel_auroc": 0.0,
+          "pixel_f1_max": 0.0
+        }
+      }
+    }
+  }
+}

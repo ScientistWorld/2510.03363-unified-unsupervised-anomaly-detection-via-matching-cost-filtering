@@ -1,6 +1,4 @@
-# Once you set action to 'submit' or 'done', STOP immediately.
-# Do NOT sleep, poll, or wait for jobs. The system reads this file
-# only after your turn ends.
-action: done
-milestone: core_claim_plus
-notes: "Hardened MVTec-AD gym: hidden-half evaluator recomputes class-mean metrics from raw outputs, failed or missing runs score 0, red-team shortcuts closed; better variants beat the reference beyond seed noise and weaker ones fall below; pixel-level claim reproduced, image-level gain within noise; full-memory-bank brute force and public MVTec-AD answers left to the grader (HARDENING.md)."
+action: submit
+gpus: 2
+test: false
+notes: "Final hardening job: prepare VisA, full-shot AnomalDF baseline + AnomalDF+UCF seed 0 on MVTec-AD and VisA (parallel on 2 GPUs), score both slices, then study (seeds 1-2, ensemble, N=16 training, focal/no-guidance ablations, N=3 inference, lambda, shortcuts, paired bootstrap) and validate."
