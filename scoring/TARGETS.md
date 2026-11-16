@@ -1,12 +1,12 @@
 # Evaluation Targets
 
-Two scored experiments, weight 1.0 each, with the same metrics, coefficients and failure rules. Each is multi-class unsupervised anomaly detection and localisation: one model per benchmark covers all of its categories and is trained on normal images only. Each is scored on a hidden slice of the official test set whose defect types are absent from the visible development slice.
+Two scored experiments, weight 0.5 each, with the same metrics, coefficients and failure rules. Each is multi-class unsupervised anomaly detection and localisation: one model per benchmark covers all of its categories and is trained on normal images only. Each is scored on a hidden slice of the official test set whose defect types are absent from the visible development slice.
 
-## rgb_mvtec_multiclass (weight 1.0)
+## rgb_mvtec_multiclass (weight 0.5)
 
 MVTec-AD, 15 categories. Hidden half: 880 images.
 
-## rgb_visa_multiclass (weight 1.0)
+## rgb_visa_multiclass (weight 0.5)
 
 VisA, 12 categories, official 1cls split. Hidden two thirds: 1,428 images. Added so that image-level differences between good methods can clear the noise of the hidden test: MVTec-AD alone has only 880 hidden images. VisA is the paper's second RGB benchmark.
 

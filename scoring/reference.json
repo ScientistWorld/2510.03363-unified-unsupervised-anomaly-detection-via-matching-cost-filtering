@@ -2,7 +2,7 @@
   "experiments": {
     "rgb_mvtec_multiclass": {
       "description": "Unimodal RGB multi-class anomaly detection and localization on MVTec-AD (15 categories, one model for all, normal-only training). Paper reference: AnomalDF with and without UCF under AnomalyDINO's full-shot protocol, Table XXIV (Exp. IDs 3-4: the whole category training set as the template bank; the UCF model trained with N=3 random templates is applied to the full bank without retraining). The gym runs the same dataset at 224x224 with a frozen DINOv2 ViT-S/14 and scores a hidden half of the official test set (880 images) whose defect types are disjoint from the visible development half; every metric is computed per category and averaged over the 15 categories, as in the paper.",
-      "weight": 1.0,
+      "weight": 0.5,
       "primary_metric": "pixel_auroc",
       "_scale_note": "Scaled setup: 224px inputs (16x16 patch grid) instead of 256px, DINOv2 ViT-S/14, a compact 3D U-Net filter (about 4M parameters instead of +43.8M), and the hidden half of the MVTec-AD test set (880 of 1725 images). The paper's numbers come from its 256px setting on the whole test set; they are kept as the paper reported them and are not expected to be matched at this scale.",
       "_paper_overhead": {
@@ -124,7 +124,7 @@
     },
     "rgb_visa_multiclass": {
       "description": "Unimodal RGB multi-class anomaly detection and localization on VisA (12 categories of complex and multi-instance objects, one model for all, normal-only training, the official 1cls split). Paper reference: AnomalDF with and without UCF, Table XXIV Exp. IDs 11-12 (full template bank; the UCF model trained with N=3 random templates). The gym runs it at 224x224 with a frozen DINOv2 ViT-S/14 and scores a hidden two thirds of the official test set (1,428 images) whose defect types are disjoint from the visible development third; every metric is computed per category and averaged over the 12 categories.",
-      "weight": 1.0,
+      "weight": 0.5,
       "primary_metric": "pixel_auroc",
       "_scale_note": "Scaled setup: 224px inputs (16x16 patch grid) instead of 256px, DINOv2 ViT-S/14, a compact 3D U-Net filter, and the hidden two thirds of the VisA test set. The paper's numbers come from its 256px setting on the whole test set; they are kept as reported and are not expected to be matched at this scale.",
       "_why": "Added in the final hardening pass to enlarge the hidden test (MVTec-AD alone gives 880 hidden images, too few for image-level differences between good methods to clear the noise) with the paper's second RGB benchmark, where the paper reports its largest image-level gains for AnomalDF+UCF (Table III, +3.8 image AUROC at N=3).",

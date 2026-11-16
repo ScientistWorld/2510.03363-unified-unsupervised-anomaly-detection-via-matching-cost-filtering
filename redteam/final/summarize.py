@@ -30,13 +30,19 @@ EXPS = {
     "rgb_mvtec_multiclass": {"answers": ROOT / "eval" / "test" / "downloads" / "test_answers.npz", "file": "predictions.npz"},
     "rgb_visa_multiclass": {"answers": ROOT / "eval" / "test" / "downloads" / "visa_test_answers.npz", "file": "predictions_visa.npz"},
 }
-SEEDS = ("reference", "ucf_seed1", "ucf_seed2")
+SEEDS = ("reference", "ucf_seed1", "ucf_seed2", "ucf_seed3", "ucf_seed4")
 GROUPS = {
     "reference": "reference (full-shot UCF, seed 0)",
     "anomaldf_baseline": "baseline (full-shot AnomalDF = memory-bank brute force)",
     "ucf_seed1": "seed",
     "ucf_seed2": "seed",
+    "ucf_seed3": "seed",
+    "ucf_seed4": "seed",
     "ucf_ensemble3": "better candidate",
+    "ucf_ensemble5": "better candidate",
+    "ucf_ensemble3_lam0p25": "better candidate",
+    "ucf_ensemble5_lam0p25": "better candidate",
+    "ucf_wide": "better candidate (filter widened toward the paper's size)",
     "ucf_train_n16": "better candidate",
     "ucf_focal_only": "paper ablation (worse in the paper)",
     "ucf_no_guidance": "paper ablation (worse in the paper)",
@@ -271,7 +277,7 @@ def main() -> None:
         for e in EXPS:
             lines.append(f"\n{short[e]} reference minus baseline: " + json.dumps({k: round(v, 3) for k, v in s["reference_minus_baseline"][e].items()}))
         sp = s["seed_spread_max_minus_min"]
-        lines.append("\nseed spread (max-min over 3 training seeds): " + json.dumps(
+        lines.append(f"\nseed spread (max-min over {len([x for x in SEEDS if x in s['rows']])} training seeds): " + json.dumps(
             {**{short[e]: {k: round(v, 3) for k, v in sp[e].items()} for e in EXPS}, "rank_honest": round(sp["rank_honest"], 3), "rank_full": round(sp["rank_full"], 3)}
         ) + "\n")
     if paired:

@@ -57,6 +57,7 @@ GAMMA_RULE = 2  # 2: gamma = gamma0 - sigmoid(y_c) if the category is predicted 
 RESUME_KEYS = ("dataset", "templates", "match_k", "no_guidance", "seed", "lr", "batch_size", "alpha", "gamma0", "fg_restrict", "train_fraction", "loss")
 SETUP_FILE = Path(__file__).resolve().parent / "ucf_setup.json"
 PAPER_SETUP = {"epochs": 40, "lr": 1e-3, "fg_restrict": True}
+DEFAULT_WIDTHS = "64,96,128"  # compact 3D U-Net (about 4M parameters; the paper's filter adds 43.8M)
 
 
 def load_setup() -> dict:
@@ -115,12 +116,16 @@ def build_model(args, device: torch.device) -> UCFNet:
     return UCFNet(
         match_channels=args.match_k,
         num_classes=len(category_names(args.dataset)),
+        widths=tuple(int(v) for v in args.widths.split(",")),
         use_guidance=not args.no_guidance,
     ).to(device)
 
 
 def config_of(args) -> dict:
-    return {"arch": ARCH_VERSION, "gamma_rule": GAMMA_RULE, **{k: getattr(args, k) for k in RESUME_KEYS}}
+    cfg = {"arch": ARCH_VERSION, "gamma_rule": GAMMA_RULE, **{k: getattr(args, k) for k in RESUME_KEYS}}
+    if args.widths != DEFAULT_WIDTHS:  # recorded only when changed, so default-width checkpoints keep their config
+        cfg["widths"] = args.widths
+    return cfg
 
 
 def adaptor_gamma(cls: torch.Tensor, cats: torch.Tensor, gamma0: float) -> torch.Tensor:
@@ -314,6 +319,7 @@ def predict(args, device, model, backbone, cache, train_cats_np, index, output: 
         "anomaly_maps": "lambda * UCF anomaly probability + (1 - lambda) * AnomalDF map for the same templates",
         "image_score": "mean of the top-250 values of the fused map",
         "arch_version": ARCH_VERSION,
+        "widths": args.widths,
         "trainable_params_M": sum(p.numel() for p in model.parameters()) / 1e6,
     }
     meta_path.write_text(json.dumps(meta_all, indent=2))
@@ -332,6 +338,7 @@ def main() -> None:
     p.add_argument("--gamma0", type=float, default=3.0)
     p.add_argument("--templates", type=int, default=3, help="random same-category templates per training input (paper: N = 3)")
     p.add_argument("--match-k", type=int, default=MATCH_K, help="matching dimension: lowest costs kept per input token")
+    p.add_argument("--widths", default=DEFAULT_WIDTHS, help="channel widths of the three 3D U-Net levels")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--no-guidance", action="store_true", help="ablation: drop both guidance streams")
     p.add_argument("--loss", choices=("full", "focal"), default="full", help="ablation: 'focal' trains with the focal loss alone")
@@ -372,9 +379,10 @@ def main() -> None:
         if int(state["epoch"]) < args.epochs:
             raise SystemExit(f"{args.checkpoint} holds epoch {state['epoch']} < {args.epochs}")
         cfg = state.get("config", {})
-        for key in ("arch", "dataset", "match_k", "no_guidance"):
+        for key in ("arch", "dataset", "match_k", "no_guidance", "widths"):
             want = ARCH_VERSION if key == "arch" else getattr(args, key)
-            if cfg.get(key) != want:
+            have = cfg.get(key, DEFAULT_WIDTHS) if key == "widths" else cfg.get(key)
+            if have != want:
                 raise SystemExit(f"{args.checkpoint}: config {key}={cfg.get(key)!r} does not match {want!r}")
         model = build_model(args, device)
         model.load_state_dict(state["model"])

@@ -70,6 +70,14 @@ stream() {  # stream <dataset> <device>
   # paper ablations (worse in the paper)
   train "$ds" "$dev" ucf_focal_only focal --loss focal
   train "$ds" "$dev" ucf_no_guidance noguide --no-guidance
+  # follow-up (second job): a wider filter, toward the paper's +43.8M-parameter network
+  train "$ds" "$dev" ucf_wide wide --widths 128,192,256
+  # two more training seeds (5-seed noise estimate), 5-seed ensemble, ensembles at lambda = 0.25
+  train "$ds" "$dev" ucf_seed3 seed3 --seed 3
+  train "$ds" "$dev" ucf_seed4 seed4 --seed 4
+  fused "$ds" ucf_ensemble5 0.5 "$REF" "$OUT/ucf_seed1" "$OUT/ucf_seed2" "$OUT/ucf_seed3" "$OUT/ucf_seed4"
+  fused "$ds" ucf_ensemble3_lam0p25 0.25 "$REF" "$OUT/ucf_seed1" "$OUT/ucf_seed2"
+  fused "$ds" ucf_ensemble5_lam0p25 0.25 "$REF" "$OUT/ucf_seed1" "$OUT/ucf_seed2" "$OUT/ucf_seed3" "$OUT/ucf_seed4"
 }
 
 score_all() {  # every directory under OUT is a method; a missing artifact is scored as failed

@@ -61,7 +61,7 @@ A failing method never outranks one that solves the task.
 
 ## Ranking
 
-An attempt's rank sums over both experiments (weight 1.0 each) and over the seven metrics. Each term is the coefficient times the attempt's improvement over the reference on the hidden slice. Each improvement is divided by how much that metric varies across the ranked attempts. Only the hidden-slice numbers in `scoring/scores_test.json` are ranked.
+An attempt's rank sums over both experiments (weight 0.5 each) and over the seven metrics. Each term is the coefficient times the attempt's improvement over the reference on the hidden slice. Each improvement is divided by how much that metric varies across the ranked attempts. Only the hidden-slice numbers in `scoring/scores_test.json` are ranked.
 
 ## Protocol constraints
 
