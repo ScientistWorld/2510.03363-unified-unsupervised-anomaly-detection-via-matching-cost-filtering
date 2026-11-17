@@ -1,4 +1,4 @@
 action: submit
 gpus: 2
 test: false
-notes: "Final hardening job: prepare VisA, full-shot AnomalDF baseline + AnomalDF+UCF seed 0 on MVTec-AD and VisA (parallel on 2 GPUs), score both slices, then study (seeds 1-2, ensemble, N=16 training, focal/no-guidance ablations, N=3 inference, lambda, shortcuts, paired bootstrap) and validate."
+notes: "Follow-up study job (resumes; finished rows skipped): wider UCF filter (128/192/256) and training seeds 3-4 on MVTec-AD and VisA, 5-seed ensemble and ensembles at lambda 0.25, rescoring + paired bootstrap, validate."
