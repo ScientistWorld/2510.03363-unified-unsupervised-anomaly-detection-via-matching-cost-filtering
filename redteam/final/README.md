@@ -12,6 +12,7 @@
 
 - Prediction artifacts go to `outputs/` (gitignored).
 - Per-row score files go to `scores/` (tracked).
+- `summary_job1.*` is the first job's summary, before seeds 3–4 and the wider filter were added.
 - Results are discussed in `HARDENING.md` at the workspace root.
 
 `redteam/hardening/` is the previous pass's study, run under the earlier N=3, MVTec-only protocol. Its summary is the "before" record. Its scripts target that protocol and are not run any more.

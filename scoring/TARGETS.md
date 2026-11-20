@@ -28,7 +28,12 @@ Paper Table XXIV, full template bank, 256 px, whole test sets (image AUROC / pix
 
 `scoring/reference.json` gives the other metrics, and the N = 3 rows (MVTec-AD 96.8 / 98.1 → 98.5 / 98.8; VisA 90.5 / 97.4 → 94.3 / 99.2).
 
-The gym's own reference is the reproduced AnomalDF+UCF row in `scoring/scores_test.json`: 224 px, compact filter, hidden slices.
+The gym's own reference is the reproduced AnomalDF+UCF row in `scoring/scores_test.json`: 224 px, compact filter, hidden slices. Image / pixel AUROC:
+
+| benchmark | AnomalDF (full bank) | AnomalDF+UCF |
+|---|---|---|
+| MVTec-AD | 96.75 / 95.28 | 96.88 / 96.59 |
+| VisA | 87.71 / 94.53 | 88.61 / 94.80 |
 
 ## How to run
 

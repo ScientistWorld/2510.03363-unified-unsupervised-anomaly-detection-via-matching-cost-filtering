@@ -1,189 +1,224 @@
-# Hardening report
+# Hardening report (final pass)
 
 ## Verdict
 
-Better results now score higher and worse ones lower on the hidden test. Every shortcut in `REDTEAM.md` is closed: each one now fails (scores 0 on every metric) or ties the reference exactly. Two shortcuts remain that the evaluator cannot see, and both are left to the grader (see "Shortcuts left"). The reproduction shows the paper's claim clearly at pixel level. At image level the gain points the right way but is inside the test's noise. That is stated plainly below.
+Both items in `REVIEW.md` are addressed.
 
-## What changed
+- **The full-train memory bank no longer pays.** The reference is now the paper's own best AnomalDF+UCF setting, its full-shot protocol (Table XXIV). The memory-bank brute force is now the baseline, at rank −3.79 on the hidden test.
+- **The hidden test is 2.6× larger.** I added VisA, the paper's second RGB benchmark, as a second scored experiment. The hidden test grows from 880 to 2,308 images. The paper's image-level effect is now significant on VisA:
+  - image AUROC +0.90, paired 95% CI [+0.38, +1.46];
+  - image AP +1.27;
+  - in combined image AP, the baseline is −1.12 [−1.99, −0.18] below the reference.
+- **Weaker variants separate at image level**, beyond the paired intervals:
+  - the paper's N = 3 inference;
+  - the paper's guidance and loss ablations.
+- **Shortcuts.** Every shortcut in this study fails or ties the reference exactly.
 
-The gym the red team audited was a compact procedural RGB substitute. Its evaluator trusted method-written labels, masks, ids and costs, and its generator could rebuild the test answers. Earlier in this iteration it was rebuilt:
+What is **not** achieved:
+- **No better variant clears the noise.** No variant I tried beats the reference on the hidden test beyond noise, at image level or overall.
+  - The reference run (training seed 0) is the best of 5 training seeds on both slices.
+  - 3- and 5-seed ensembles beat the average seed by +1.2 to +1.3 rank, but seed 0 by only +0.1 to +0.2.
+  - The test can resolve image-level differences of about 0.5 class-mean AUROC (paired CI half-width 0.3–0.7). The variants I had simply do not improve image detection by that much.
+- **MVTec-AD image AUROC is not robust across seeds.** Seed 0 gains +0.12 over the full-bank baseline. The 5-seed mean is −0.55, and only 1 of 5 seeds is above the baseline. The pixel-level gains and all VisA image-level gains hold for every seed.
 
-- **Data.** It now uses MVTec-AD, the paper's own dataset: 15 categories at 224 px, one model for all, trained on the 3,629 normal images only. The 1,725 test images are given to methods under anonymous ids, with category but no label or mask.
-- **Split and answers.** The test set is split into a visible development half (845 images) and a hidden half (880 images). Answers for the hidden half exist only under `eval/test/`, as do the archive and the only code that can rebuild them. Whole defect types are assigned to one half, so the hidden half holds defect types the development half never shows.
-- **What the evaluator reads.** It reads only `ids`, `image_scores` and `anomaly_maps`, and recomputes every metric. Every metric is a class-wise mean, as in the paper's tables.
-- **Failure rules.** A run fails, scoring 0 on every metric, if it does not list every test id exactly once, has a wrong shape or dtype, contains a non-finite value, or has class-mean image AUROC or pixel AUROC below 70.
-- **Costs.** Self-reported parameter and FLOP counts were removed from scoring, because nothing can recompute them.
-- **Method.** The reproduction is AnomalDF+UCF on a frozen DINOv2 ViT-S/14, restored to the paper's own pipeline:
-  - inference fused with λ = 0.5;
-  - image score from the top-250 values of the map;
-  - the class-aware adaptor's γ rule;
-  - N = 3 random same-category templates;
-  - 40 epochs, batch 8, Adam with a plateau scheduler.
-- **Setup choice.** Epochs, learning rate and whether synthetic anomalies are kept to the object foreground were chosen on the development half only (`method/ucf_setup.json`).
+## What changed in this pass
 
-This session closed the remaining contract gaps, rewrote the stale documentation, and re-checked everything in one CPU job, `ca3feb76-e4a` (40 min, exit 0, `validate.py` passed):
+### 1. Reference = the paper's full-shot setting (review item 2)
 
-1. **A missing method directory scores as failed.** `scripts/evaluate_{train,test}.sh` and `scripts/evaluate.sh` now score every directory under `outputs/` (symlinked ones included). They also score every method named in `scoring/reference.json` or `scoring/scores.json`. Before, a run that crashed before creating `outputs/<method>/` was missing from `scores_test.json`, and the rank skips a missing entry, so failing cost nothing. Now it scores 0 everywhere.
-2. **No artifact can stop scoring for the others.** Before, two directories whose names map to the same method key (e.g. `anomaldf-ucf` next to `anomaldf_ucf`) made the evaluator exit before writing any score for any method. Now both are scored. The directory named exactly after the key keeps it, and the other becomes `<key>__dup1`.
-3. **Array shapes are checked from the `.npy` headers before any data is read.** A header claiming about 400 GB is rejected immediately.
-4. **Docs rewritten.** `briefing/evaluation.md`, `scoring/{TARGETS,CONSTRAINTS,DIRECTION,EXPERIMENTS}.md` still described the procedural gym, including its parameter/FLOP constraint metrics. They now describe the MVTec-AD gym and its failure rules. `CONSTRAINTS.md` states the paper's operating point precisely:
-   - normal-only training;
-   - the frozen ViT-S/14 at 224 px;
-   - at most N = 3 normal training images per test input, chosen with at most one global descriptor per training image;
-   - each test input scored on its own.
-5. **Rescoring.** All 60 saved study rows (30 artifacts × 2 halves) were rescored with the changed evaluator. Every metric is identical to the previous scoring. The only change is the failure message of one shortcut, `shortcut_half_population`, whose ids are now rejected by the header check before the id check. `scoring/scores_{train,test}.json` and `scores.json` were regenerated from the reference runs (AnomalDF, AnomalDF+UCF) and are identical to before.
+**Why.** The old gym barred the full memory bank by a stated N = 3 template budget. The evaluator cannot observe that budget. The brute force scored +4.37, above every honest variant shown, and the paper itself reports the full bank as better (Table XXIV).
 
-The reference method, the baseline and the data were not changed in this session. All reference, variant and shortcut artifacts were produced from the final code in job `1e7c6766-a3f`, and the code those runs depend on has not changed since.
+**What changed.**
+- **The reference** is AnomalDF+UCF under AnomalyDINO's full-shot protocol, as in Table XXIV Exp. IDs 4 and 12. The filter is trained with N = 3 random templates, exactly as before. It is then applied without retraining to the cost volume against every training image of the input's category.
+- **The cost-volume shape.** The paper says the volume shape "is adapted to match the input shape required by our models". The authors' released code (CostFilter-AD, `pre_min_dim`) does this by keeping a fixed number of lowest matching costs per input token. `method/ucf_model.py` now does the same: K = D = 256, in template-token order. One model therefore takes the 3-template volume in training and the full-bank volume at test time.
+- **The baseline** is full-shot AnomalDF (Table XXIV IDs 3 and 11): exhaustive matching against the whole bank. The brute force that used to be a loophole is now the comparison point.
+- **Inference is the paper's:** λ = 0.5 fusion and top-250 image score. Training is unchanged from the paper: 40 epochs, batch 8, Adam, focal + CE + 0.1 · (soft IoU + SSIM), the γ rule.
+- **Constraints.** The template budget was removed from `scoring/CONSTRAINTS.md`, since it was unenforceable and is now moot.
+- **Retraining.** The reference was retrained from the final code, because the cost-volume layout changed.
+
+### 2. VisA as a second hidden experiment (review item 1)
+
+**Data.** `rgb_visa_multiclass` uses VisA (12 categories, official 1cls split: 8,659 normal training images, 2,162 test images) at 224 px. Each dataset gets its own unified model, as in the paper.
+- **Archive.** It sits in `eval/test/downloads/`. `scripts/download.sh` fetches it from the public S3 bucket and pins its SHA-256.
+- **The only code that rebuilds the answers** is `eval/test/prepare_visa.py`.
+- **Split.** One third of the test set is a visible development slice (734 images). Two thirds are hidden (1,428 images: 787 anomalous, 641 normal). Whole primary defect types go to one side, as for MVTec-AD.
+
+**Evaluators.** Both `eval/{train,test}/evaluate.py` now score each method directory in both experiments: `predictions.npz` for MVTec-AD and `predictions_visa.npz` for VisA.
+- A missing or invalid file, or a failed task gate (image or pixel AUROC < 70), scores 0 on every metric of that experiment.
+- Everything else is unchanged: class-wise means, header shape checks, id coverage, finite values, and collision-safe naming.
+
+**Weights.** MVTec-AD 0.5, VisA 0.5. `validate.py` requires the weights to sum to 1. The paper treats the two benchmarks alike (Tables I, III, XXIV). Coefficients are unchanged.
+
+### 3. Smaller fixes
+
+- Training/inference scripts take `--dataset` and `--device`; with two GPUs the two datasets run in parallel.
+- Per-dataset metadata files avoid a write race.
+- Checkpoint resume restores the synthesis generator state on CPU. A resumed run crashed before this fix; found when a worker node died mid-job.
+- `--widths` option for the filter.
+
+### 4. Study
+
+`redteam/final/` holds the study scripts.
+- `summary.md` / `summary.json` are the final results.
+- `summary_job1.*` is the first job, before seeds 3–4 and the wide filter.
+- The previous pass's study stays in `redteam/hardening/` as the "before" record.
+
+All rows were produced by the final code in jobs `f88f34e8-c85` and `9108bab3-421`, with the resumed job `af72abdf-466` in between. The reference and baseline were rerun end to end. `scoring/scores_{train,test}.json` and `scores.json` hold only the reference and baseline rows. `python validate.py --compare --post-design` passes.
 
 ## Do better results score higher?
 
-The rank is Σ |coef| · (attempt − reference) / std. Coefficients come from `scoring/reference.json`. The std is taken over the 20 honest hidden-test runs listed below. "Full" also counts the 13 shortcut rows; failed rows drag its std up.
+**How the rank is computed.** The rank is Σ_e w_e Σ_m |coef_m| · (attempt − reference) / std_e,m. Weights are 0.5 per experiment, and std is taken over the 21 honest hidden-test runs below.
 
-**Before (red-team audit, procedural gym, honest cohort):**
+**Before** (previous pass, MVTec-only hidden half, its own honest cohort and units):
 
 | variant | expected | rank |
 |---|---|---:|
-| normal-only patch calibration | better | +12.69 |
-| 1 epoch instead of 40 | worse | −0.89 |
-| filtering removed | worse | **+0.61** |
-| 160 epochs | — | −1.32 |
-| fresh reference, seeds 7 / 13 / 23 | equal | −0.33 / +0.48 / −0.18 (spread 0.82) |
+| 3 nearest templates (N = 3 protocol) | better | +4.03 |
+| 3-seed ensemble, nearest templates | better | +4.54 |
+| full memory bank (barred by a rule only) | brute force | **+4.37** |
+| UCF on top of the full bank | over budget | +7.21 |
+| focal loss only (paper: worse) | worse | **+2.59** |
+| guidance removed (paper: worse) | worse | **+0.16** |
+| AnomalDF baseline | worse | −3.32 |
+| seed spread (3 seeds) | | 0.52 |
 
-There, removing the paper's filter scored above the reference. The reference's image AUROC was below the baseline's (55.3 vs 58.0) and near chance.
+**After** (final gym, hidden test of both experiments, honest cohort):
 
-**After (hidden half, 880 images):**
+| run | expected | rank | MVTec part | VisA part | MVTec I-AUROC / P-AUROC / P-AP | VisA I-AUROC / P-AUROC / P-AP |
+|---|---|---:|---:|---:|---|---|
+| 3-seed ensemble (seeds 0–2) | better | +0.20 | −0.05 | +0.25 | 96.64 / 96.59 / 64.8 | 88.51 / 94.88 / 31.7 |
+| 5-seed ensemble (seeds 0–4) | better | +0.10 | −0.24 | +0.34 | 96.32 / 96.60 / 65.1 | 88.63 / 94.91 / 32.6 |
+| **reference** (full-shot UCF, seed 0) | — | 0 | 0 | 0 | 96.88 / 96.59 / 62.1 | 88.61 / 94.80 / 29.4 |
+| 3-seed ensemble, λ = 0.25 | better? | −0.03 | −0.30 | +0.27 | 97.06 / 96.39 / 61.7 | 88.56 / 94.89 / 31.7 |
+| λ = 0.25 / 0.75 | ≈ equal | −0.06 / −0.29 | | | 97.06 / 96.45 / 60.1 · 96.78 / 96.65 / 62.5 | 88.66 / 94.85 / 30.5 · 88.56 / 94.65 / 27.2 |
+| 5-seed ensemble, λ = 0.25 | better? | −0.21 | −0.51 | +0.30 | 96.74 / 96.39 / 61.9 | 88.64 / 94.89 / 32.2 |
+| wider filter (128/192/256, ~4× params) | better? | −0.49 | −0.07 | −0.42 | 96.49 / 96.71 / 64.8 | 88.08 / 94.55 / 27.1 |
+| trained with 16 templates | better? | −0.75 | −1.01 | +0.26 | 96.19 / 96.18 / 62.1 | 88.08 / 94.80 / 33.3 |
+| seeds 1 / 2 / 3 / 4 | equal | −1.14 / −1.83 / −1.21 / −1.35 | | | 95.93–96.13 / 96.12–96.31 / 60.8–62.0 | 88.16–88.73 / 94.40–94.81 / 24.8–32.8 |
+| 10 of 40 epochs | worse | −1.68 | −1.65 | −0.02 | 96.36 / 95.84 / 57.7 | 88.11 / 94.71 / 30.3 |
+| focal loss only (paper Table IX) | worse | **−1.81** | −1.91 | +0.09 | 93.91 / 96.46 / 61.4 | 87.38 / 95.23 / 31.9 |
+| filter switched off (λ = 0) | worse | −3.88 | | | 96.38 / 95.28 / 44.6 | 87.97 / 94.53 / 23.4 |
+| **AnomalDF full bank (baseline = brute force)** | worse | **−3.79** | −3.01 | −0.78 | 96.75 / 95.28 / 44.6 | 87.71 / 94.53 / 23.4 |
+| UCF with the paper's N = 3 random templates | worse | −6.57 | −3.82 | −2.75 | 93.62 / 94.57 / 59.5 | 83.40 / 91.77 / 23.3 |
+| UCF map alone (λ = 1) | worse | −7.22 | | | 94.36 / 96.06 / 62.4 | 83.69 / 83.22 / 23.2 |
+| AnomalDF, N = 3 random templates | worse | −10.95 | | | 91.64 / 93.35 / 44.3 | 81.91 / 91.38 / 17.4 |
+| guidance removed (paper ablation) | worse | **−11.04** | −5.75 | −5.29 | 92.31 / 94.40 / 51.3 | 72.55 / 93.54 / 16.4 |
 
-| run | expected | rank (honest) | rank (full) | I-AUROC | P-AUROC | AUPRO | P-AP |
-|---|---|---:|---:|---:|---:|---:|---:|
-| ucf_ensemble3_nearest (3 seeds, 3 nearest templates) | better | **+4.54** | +0.22 | 94.02 | 95.49 | 88.99 | 60.30 |
-| ucf_nearest_seed1 | better | **+4.40** | +0.20 | 94.22 | 95.28 | 88.75 | 59.65 |
-| ucf_nearest (3 nearest templates instead of 3 random) | better | **+4.03** | +0.16 | 93.96 | 95.42 | 88.73 | 58.43 |
-| ucf_nearest_seed2 | better | **+3.48** | +0.13 | 93.77 | 95.31 | 88.58 | 58.06 |
-| ucf_ensemble3 (3 seeds, random templates) | better | +0.75 | +0.07 | 92.06 | 94.12 | 86.90 | 59.78 |
-| ucf_seed1 / ucf_seed2 | equal | +0.33 / −0.19 | +0.04 / −0.02 | 91.85 / 91.75 | 94.01 / 94.00 | 86.69 / 86.52 | 59.11 / 57.52 |
-| **reference** (AnomalDF+UCF, seed 0) | — | 0 | 0 | 91.85 | 94.07 | 86.69 | 57.82 |
-| fused λ = 0.25 / 0.75 | ≈ equal | −0.32 / −0.31 | −0.05 / −0.03 | 91.94 / 91.62 | 94.00 / 94.02 | 86.67 / 86.41 | 56.07 / 57.45 |
-| ucf_tenth_data (10% of training images) | worse | −0.21 | −0.07 | 92.07 | 93.94 | 86.85 | 55.20 |
-| ucf_quarter_epochs (10 epochs) | worse | −0.84 | −0.10 | 91.76 | 93.79 | 86.20 | 55.13 |
-| ucf_no_guidance (both guidance streams removed) | worse | +0.16 | −0.13 | 92.11 | 93.93 | 86.82 | 52.80 |
-| ucf_focal_only (paper's loss ablation) | worse in the paper | **+2.59** | +0.13 | 92.59 | 94.89 | 88.34 | 59.91 |
-| AnomalDF baseline (no filtering) | worse | **−3.32** | −0.45 | 91.64 | 93.35 | 85.29 | 44.34 |
-| fused λ = 0 (filter switched off) | worse | −3.36 | −0.45 | 91.64 | 93.35 | 85.29 | 44.34 |
-| ucf_alone (λ = 1, no fusion) | worse | **−7.59** | −0.47 | 89.78 | 90.12 | 75.04 | 53.15 |
+**Training-seed noise.**
+- Five seeds give a hidden-test rank spread of 1.83 (max − min); seed 0 is the top.
+- The paper's effect (reference − baseline) is 3.79, 2.1× that spread.
+- Against the 5-seed mean, the baseline is −2.68.
+- Per-metric seed spread on the hidden test:
+  - MVTec-AD: image AUROC 0.94, pixel AUROC 0.47, AUPRO 1.28, pixel AP 1.3, pixel F1 2.8.
+  - VisA: image AUROC 0.57, pixel AUROC 0.41, AUPRO 1.4, **pixel AP 8.0, pixel F1 8.8**. VisA pixel AP and F1 swing 24.8–32.8 across seeds.
+- On the dev slice the seed spread is 0.67.
 
-**Seed noise.** Three training seeds give a hidden-test rank spread of 0.52 (max − min). Per metric: image AUROC 0.10, pixel AUROC 0.06, AUPRO 0.18, pixel AP 1.59. The paper's effect (reference − baseline) is a rank gap of 3.32. The better variants sit 3.5–4.5 above the reference and the clearly weaker ones 0.8–7.6 below, all larger than the seed spread.
+**Ordering.**
+- The weaker variants order as expected.
+- The paper's two ablations now point the paper's way: focal only −1.81, guidance removed −11.04. Before this pass they ranked at or above the reference.
+- Every seed beats the baseline in rank.
+- Every "better" candidate beats the average seed: ensembles +1.2 to +1.3, the wider filter +0.6.
+- No candidate beats the seed-0 reference by more than the seed noise. On the dev slice, the ensembles beat it by +0.6 to +0.9 against a seed spread of 0.67.
 
-**Paired bootstrap.** Same images for every method; 200 resamples, stratified by category:
-- ucf_nearest beats the reference by +2.18 image AUROC [+0.45, +3.65] and +1.34 pixel AUROC [+0.98, +1.79].
-- The ensemble beats it by +2.24 [+0.44, +3.77] and +1.43 [+1.07, +1.88].
-- The baseline loses −0.51 pixel AUROC [−0.70, −0.33].
-- ucf_quarter_epochs loses −0.25 [−0.41, −0.10].
+**Paired bootstrap on the hidden test** (300 category-stratified resamples, same images for every method, Δ vs reference):
 
-**Not in the paper's direction:**
-- **Focal loss alone** beats the full loss at this scale: pixel AUROC +0.92 [+0.42, +1.33]. The paper's Table IX ablation says the opposite. This is a real difference in quality, not a loophole, so it is correct that it ranks higher. It is open headroom for future work.
-- **Removing guidance** and **training on 10% of the data** cannot be told apart from the reference (their ranks are within seed noise). The paper's guidance ablation is therefore not reproduced at this scale either.
+| run | MVTec Δ I-AUROC | VisA Δ I-AUROC | combined Δ I-AUROC | combined Δ I-AP | VisA Δ P-AUROC (14×14) |
+|---|---|---|---|---|---|
+| AnomalDF baseline | −0.13 [−1.56, +1.31] | **−0.89 [−1.46, −0.38]** | −0.51 [−1.24, +0.30] | **−1.12 [−1.99, −0.18]** | **−0.39 [−0.67, −0.13]** |
+| 10 of 40 epochs | −0.52 [−2.04, +0.91] | **−0.51 [−0.97, −0.09]** | −0.51 [−1.29, +0.18] | **−0.93 [−1.78, −0.11]** | −0.01 [−0.27, +0.23] |
+| focal only | **−3.02 [−4.41, −1.78]** | −1.18 [−3.00, +0.41] | **−2.10 [−3.24, −1.13]** | **−1.33 [−2.19, −0.58]** | +0.84 [−0.02, +1.78] |
+| paper's N = 3 inference | **−3.33** | **−5.13** | **−4.23 [−5.40, −3.12]** | **−3.38** | **−3.11** |
+| guidance removed | **−4.52** | **−16.13** | **−10.33 [−11.94, −8.77]** | **−8.61** | **−2.07** |
+| 5-seed ensemble | −0.54 [−1.41, +0.30] | +0.04 [−0.31, +0.41] | −0.25 [−0.71, +0.15] | −0.29 [−0.88, +0.15] | **+0.17 [+0.08, +0.25]** |
+| 3-seed ensemble | −0.24 [−0.84, +0.41] | −0.08 [−0.37, +0.19] | −0.16 [−0.50, +0.17] | −0.18 [−0.58, +0.20] | **+0.10 [+0.03, +0.18]** |
+| λ = 0.25 | +0.20 [−0.25, +0.79] | +0.06 [−0.09, +0.23] | +0.13 [−0.11, +0.42] | +0.15 [−0.12, +0.41] | **+0.08 [+0.03, +0.15]** |
+
+In the old gym the paper's image-level effect was +0.21 [−0.62, +0.96]. Now it is significant on VisA, and on combined image AP.
 
 ## Major shortcuts: fix and score
 
-Ranks are the red team's full-cohort ranks before and this study's full-cohort ranks after. "0 everywhere" means the evaluator scores the run as failed.
+Ranks are full-cohort ranks in each pass's own cohort. "0 everywhere" means the evaluator scores the run as failed in that experiment.
 
 | shortcut | fix | before | after |
 |---|---|---:|---:|
-| Rebuild the public generated test answers and copy them | MVTec-AD hidden half; answers and the archive only in `eval/test/` | +9.88 (all 100) | not possible from method-visible files (but see "public MVTec-AD answers" below) |
-| Submit invented labels and masks with matching predictions | labels and masks come only from `eval/test/` | +9.88 (all 100) | 0 everywhere (gate: 51.1 / 50.8) |
-| Choose an easy subset of the test population, or duplicate rows | every test id exactly once; shape checked from the header | +4.77 | 0 everywhere |
-| Chance image scores, rescued by good maps and claimed low costs | task gate (image and pixel AUROC ≥ 70); costs not scored | +0.74 | 0 everywhere (gate: image 50.0) |
-| Negative, zero or NaN self-reported costs | costs never read | +0.66 / tie / NaN accepted | exact tie with reference (rank 0.000) |
-| Replace the baseline's predictions | rank compares with the stored reference row, not the baseline | tie | reference row unchanged (tie); the replaced baseline row fails |
-| Constant outputs, forged score file, NaN outputs | recomputed from raw outputs; non-finite values fail | −3.3 / −3.3 / crash, no scores | 0 everywhere |
-| Per-category offsets on pooled metrics | class-wise means | n/a | exact tie (0.000) |
-| A crashed run with no output directory | missing named methods scored as failed (this session) | dropped out of `scores_test.json` (costs nothing) | 0 everywhere |
-| Two directories that map to one key | collision-safe naming (this session) | evaluator exits, **no score for any method** | every artifact scored; the exact-name directory keeps the key |
-| Header claiming about 400 GB of maps | header shape check (this session) | failed (ValueError while reading) | rejected before any data is read |
-
-The before/after outputs of the last three checks are in `redteam/hardening/contract/`; `contract_checks.sh` reruns them.
+| **Full training-set memory bank (brute force)** | it is now the baseline; the reference is the paper's full-shot UCF | +4.37 honest (above every honest variant) | **−3.79** honest; every seed of the reference beats it |
+| UCF over the full bank / averaged template draws | moot: the reference already uses the full bank | +7.21 / +2.46 | — (they *are* the reference protocol) |
+| Submit one benchmark only (new contract) | a missing file fails that experiment | n/a | VisA 0 everywhere, rank −4.75 |
+| Oversized `.npy` header (400 GB claim) | header shape check, per experiment | rejected | MVTec 0 everywhere, VisA scored; rank −4.76 |
+| Invented answers, constant / NaN outputs, forged score file, half population, duplicate ids, missing artifact | unchanged rules, now on both experiments | 0 everywhere | 0 everywhere in both experiments (rank −9.51) |
+| Self-reported negative costs / perfect metrics | never read | exact tie | exact tie (0.000) |
+| Per-category offsets | class-wise means | exact tie | exact tie (0.000) |
+| Baseline predictions replaced by zeros | rank compares with the stored reference row | tie | reference row unchanged; the replaced baseline fails |
 
 ## Shortcuts left (for the grader), and why
 
-1. **Full training-set memory bank (brute force).** Matching each patch against every training image of its category (`knn_fullshot`, AnomalyDINO full-shot) scores **+4.37** (honest) on the hidden test. Image AUROC is 96.75 vs 91.85, but pixel AP is 44.6 vs 57.8. With the filter on top (`ucf_fullbank`) it scores +7.21. Averaging four random template draws (`ucf_tta4`, 12 templates) scores +2.46.
-   - **Why the evaluator cannot close it:** the paper's method exists to avoid this memory bank, and the evaluator only sees predictions, not what a method keeps in memory. Training needs all normal images on disk, so the budget cannot be enforced structurally.
-   - **What limits it:** brute force does not solve the test (no metric near its bound; pixel AP and pixel F1 well below the reference), and the paper itself reports the full bank as better on image AUROC (Table XXIV: 99.0 vs 98.5). An honest variant inside the budget (`ucf_nearest`, +4.03) reaches about the same rank.
-   - **What the grader checks:** the budget is stated in `scoring/CONSTRAINTS.md` (at most 3 normal images per input; at most one global descriptor per training image for choosing them).
-2. **Public MVTec-AD answers.** MVTec-AD is public, so a method with internet access could download the official masks and match test inputs to them. That would score 100 on every metric. Perturbing the inputs would not stop nearest-image matching against the public archive. Barred in `CONSTRAINTS.md`.
-3. **Training on the visible development answers** (`shortcut_dev_supervised`, a linear patch classifier fitted to real development-half defects). It does not pay: rank **−2.27** (honest std) on the hidden test, because the hidden defect types never appear in the development half. Its pixel AUROC gains slightly (+0.73 [0.00, +1.37]) and its image AUROC falls (−2.12). Barred in `CONSTRAINTS.md`.
-4. **Transductive scoring across test inputs** (MuSc-style mutual matching among unlabelled test images). Not run. It breaks the normal-only, one-input-at-a-time protocol and is barred in `CONSTRAINTS.md`. The evaluator cannot see it.
+1. **Public test annotations.** MVTec-AD and VisA are public. A method with internet access could download the masks and match test inputs to them; nothing in the inputs can stop nearest-image matching against the public archives. Barred in `scoring/CONSTRAINTS.md`.
+2. **Training on the visible development answers** (`shortcut_dev_supervised`, a linear patch probe fitted to real dev-slice defects). It does not pay. Against the reference it scores:
+   - image AUROC −7.2 (MVTec-AD) and −10.6 (VisA);
+   - full-cohort rank −0.74, below the baseline.
+
+   Pixel AUROC on VisA does gain (+1.2), which the rank outweighs. The hidden defect types never appear in the dev slices. Barred.
+3. **Transductive scoring** (statistics across test inputs). Not run. Barred, and invisible to the evaluator.
+4. **A larger or fine-tuned backbone, or higher input resolution.** These would very likely help: the paper's own 448/672 px rows are better. They are fixed by `CONSTRAINTS.md` as the paper's operating point and cannot be observed from predictions.
+
+The template budget is no longer in this list: it was removed, not left.
 
 ## Reference score, before and after
 
-| | image AUROC | pixel AUROC | pixel AP | AUPRO | baseline (image / pixel AUROC) |
-|---|---:|---:|---:|---:|---:|
-| Before (red team, procedural gym, stored reference) | 55.31 | 73.97 | 3.75 | — | 58.02 / 69.44 |
-| After, hidden half (`scores_test.json`) | 91.85 | 94.07 | 57.82 | 86.69 | 91.64 / 93.35 |
-| After, development half (`scores_train.json`) | 94.89 | 96.38 | 59.47 | 90.59 | 95.42 / 96.04 |
-| Paper (Table I / XXIV, 256 px, whole test set) | 98.5 | 98.8 | 67.8 | 94.2 | 96.8 / 98.1 |
+| | image AUROC | pixel AUROC | AUPRO | pixel AP | image AP | pixel F1 | image F1 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Before: MVTec hidden half, N = 3 reference | 91.85 | 94.07 | 86.69 | 57.82 | 94.67 | 57.42 | 93.21 |
+| After: MVTec-AD hidden half (`scores_test.json`) | 96.88 | 96.59 | 90.88 | 62.14 | 98.23 | 62.20 | 97.50 |
+| After: VisA hidden two thirds (`scores_test.json`) | 88.61 | 94.80 | 76.94 | 29.37 | 90.08 | 34.55 | 85.32 |
+| After: MVTec-AD dev half (`scores_train.json`) | 97.73 | 97.99 | 93.90 | 68.19 | 99.18 | 67.01 | 97.32 |
+| After: VisA dev third (`scores_train.json`) | 90.74 | 94.43 | 72.80 | 34.56 | 93.28 | 38.47 | 88.07 |
+| Paper, MVTec-AD full bank 256 px (Table XXIV ID 4) | 99.3 | 98.9 | 96.6 | 68.7 | 99.8 | 65.5 | 98.6 |
+| Paper, VisA full bank 256 px (Table XXIV ID 12) | 95.5 | 99.4 | 87.0 | 45.9 | 96.3 | 46.6 | 91.5 |
 
-All seven hidden-half numbers of the reference: image AUROC 91.851, pixel AUROC 94.065, AUPRO 86.693, pixel AP 57.825, image AP 94.668, pixel F1 57.422, image F1 93.209.
+The baseline (full-bank AnomalDF) on the hidden test:
+- MVTec-AD: 96.75 / 95.28 / 87.77 / 44.59 (image AUROC / pixel AUROC / AUPRO / pixel AP);
+- VisA: 87.71 / 94.53 / 76.52 / 23.39 (same order).
 
 ## Does the reproduction show the paper's claim?
 
-**Pixel level: yes.** On the hidden half, UCF over AnomalDF:
-- pixel AUROC +0.72 at full resolution (paired bootstrap on 28-px pooled maps: +0.51 [+0.33, +0.70]);
-- pixel AP +13.5;
-- pixel F1 +8.5;
-- AUPRO +1.4.
+Reference minus full-bank baseline on the hidden test, with the paper's Table XXIV full-bank gains alongside:
 
-The paper reports +0.7 pixel AUROC, +6.5 pixel AP, +4.1 pixel F1 and +0.6 AUPRO (Table XXIV). All are well beyond seed noise.
+| | I-AUROC | P-AUROC | AUPRO | P-AP | I-AP | P-F1 | I-F1 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| MVTec-AD, seed 0 | +0.12 | +1.31 | +3.11 | +17.6 | +1.17 | +12.5 | +1.21 |
+| MVTec-AD, 5-seed mean | **−0.55** | +0.99 | +2.30 | +17.0 | +0.25 | +11.2 | +0.02 |
+| paper MVTec-AD (ID 3→4) | +0.3 | +1.4 | +4.9 | – | +0.5 | +6.8 | +0.2 |
+| VisA, seed 0 | +0.90 | +0.26 | +0.42 | +6.0 | +1.27 | +4.0 | +0.28 |
+| VisA, 5-seed mean | +0.71 | +0.14 | +0.20 | +5.9 | +1.15 | +3.0 | +0.32 |
+| paper VisA (ID 11→12) | +0.9 | +1.1 | +0.3 | – | +0.6 | +2.3 | +0.6 |
 
-**Image level: the right direction but not significant.** Image AUROC is +0.21 (paired bootstrap 95% CI [−0.62, +0.96]), image AP +0.04, image F1 −0.26. On the development half image AUROC is −0.53. The paper reports +1.7.
-
-The paper attributes most of its image-level gain to screw (+14.2) and capsule (+6.4). At 224 px on a 16×16 ViT-S patch grid, the matching evidence for screw is too weak for the filter to use: baseline pixel AUROC on screw is 73 here vs 97.6 in the paper. This is the failure mode the paper describes in Sec. IV-E7 ("low-resolution inputs or weak feature extraction can under-represent anomalies"). I did not scale up resolution or the backbone to chase this: that changes the operating point the gym fixes, and the protocol must not be moved toward a paper number.
-
-## Departures from the paper (scale only)
-
-- **Input size and backbone:** 224 px with ViT-S/14 instead of 256 px. Paper numbers are kept in `scoring/reference.json` with a scale note.
-- **Filter size:** a compact 3D U-Net (4.0 M parameters, three levels, residual channel-spatial attention with both guidance streams, class-aware adaptor) instead of the paper's +43.8 M.
-- **Test set:** scored on the hidden half (880 of 1,725 test images) instead of the whole test set.
-- **Setup choice:** epochs, learning rate and foreground restriction were chosen on the development half. The paper's 40 epochs and lr 1e-3 were selected.
-
-The algorithm follows the paper:
-- global cosine cost volume over D·N matching channels with the L layers as depth;
-- min pooling for the initial map;
-- RCSA guided by input features and the initial map;
-- residual output, min pooling, conv, softmax;
-- focal loss with the adaptor's γ rule, CE, and 0.1·(soft IoU + SSIM);
-- λ = 0.5 fusion and a top-250 image score.
+- **Pixel level: yes, on both datasets and for every seed.** The pixel AUROC, AUPRO, AP and F1 gains on MVTec-AD hold for 5 of 5 seeds. On VisA, pixel AP holds for 5 of 5 seeds and pixel AUROC and AUPRO for 4 of 5.
+- **VisA image level: yes, for all 5 seeds.** The bootstrap interval excludes 0.
+- **MVTec-AD image level: no, not robustly.**
+  - The UCF probability hurts MVTec screw (image AUROC 83.4 → 71.6 for seed 0).
+  - Only seed 0 learns to flag missing or misplaced transistors (96.2 vs 81.7–82.7 for seeds 1 and 2).
+  - The paper's own full-bank gain here is small (+0.3).
+  - I did not change the method to chase it.
 
 ## Headroom
 
-- **Bounds:** the reference is at the bound of no scored metric. The nearest are image AP 94.7 and image F1 93.2 against a bound of 100.
-- **Room above the reference:** genuine variants inside the constraints score above it beyond noise:
-  - nearest-template choice: +4.03, about +2.2 image AUROC and +1.3 pixel AUROC, both significant;
-  - seed ensembles: +4.54;
-  - a lighter loss: +2.59.
-- **No single variant reaches the bound:** the best is 94.0 / 95.5 image / pixel AUROC.
-- **Baseline below the reference:** the simple baseline sits clearly below (−3.32). The weakest honest variant (UCF map alone) sits at −7.59.
+- **Bounds.** The reference is at the bound of no scored metric. Its highest are MVTec-AD image AP 98.2 and image F1 97.5. VisA is far from every bound: image AUROC 88.6, pixel AP 29.4, pixel F1 34.5, AUPRO 76.9.
+- **Room above the reference.** Variants that beat the average seed by more than the seed noise exist on both slices:
+  - 5-seed ensemble +1.21 over the seed mean on the hidden test;
+  - VisA pixel AUROC +0.17 [+0.08, +0.25] over seed 0 itself.
 
-Because these exist, no extra experiment was added.
+  Against the single seed-0 row they gain only +0.1 to +0.2. A future method has to beat a top-of-distribution draw of the paper's method.
+- **Brute force and simple baselines.** The brute force is the baseline, 3.79 below. The simple N = 3 AnomalDF is 10.95 below. No simple baseline outranks the reference.
+- **Added experiment.** VisA (described above), where the paper's method falls furthest short: tiny defects, multi-instance categories.
 
 ## Weights
 
-Unchanged, one experiment, weight 1.0. Coefficients:
-
-| metric | coefficient |
-|---|---:|
-| image AUROC | 1.0 |
-| pixel AUROC | 1.0 |
-| AUPRO | 0.6 |
-| pixel AP | 0.5 |
-| image AP | 0.4 |
-| pixel F1 | 0.4 |
-| image F1 | 0.3 |
-
-Image and pixel AUROC are the paper's headline metrics. The pixel-level AP, F1 and AUPRO are where it reports its largest gains.
+- MVTec-AD 0.5 and VisA 0.5. Before: one experiment at 1.0.
+- Equal, because the paper reports both benchmarks side by side as its RGB results.
+- Coefficients unchanged: image AUROC 1.0, pixel AUROC 1.0, AUPRO 0.6, pixel AP 0.5, image AP 0.4, pixel F1 0.4, image F1 0.3.
 
 ## Could not fix
 
-- The image-level gain is not significant at this scale (see above).
-- The full-memory-bank brute force outranks the reference. The template budget cannot be observed by an evaluator that only sees predictions; it is a stated constraint for the grader.
-- Two of the paper's ablations do not reproduce in its direction at this scale: focal-only beats the full loss, and removing guidance ties the reference.
-- The public MVTec-AD annotations cannot be hidden. Downloading them is barred, not prevented.
+- **No better variant beats the reference beyond noise on the hidden test.** I tried 3- and 5-seed ensembles, λ = 0.25 fusion, a 4× wider filter and 16-template training. The reference run happens to be the best of five training seeds. The variants beat the seed average but not that draw.
+- **MVTec-AD image AUROC does not robustly improve over the full-bank baseline.** It does for seed 0 only (5-seed mean −0.55). The paper reports +0.3 here.
+- **VisA pixel AP and F1 are seed-noisy** (8-point spread). They carry coefficients 0.5 and 0.4 as before.
+- **Unenforceable constraints.** The public annotations, transductive scoring and backbone/resolution limits can only be stated, not enforced, by an evaluator that sees predictions.

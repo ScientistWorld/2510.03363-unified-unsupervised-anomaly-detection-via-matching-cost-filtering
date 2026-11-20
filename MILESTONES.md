@@ -47,5 +47,12 @@
 - On the hidden half, AnomalDF+UCF (paper inference, lambda = 0.5, N = 3 templates) improves on AnomalDF: pixel AUROC 93.35 -> 94.07, pixel AP 44.3 -> 57.8, AUPRO 85.3 -> 86.7, pixel F1 48.9 -> 57.4. Image AUROC 91.64 -> 91.85 is within noise, so the image-level claim is not established at this scale.
 - Better variants inside the constraints rank above the reference beyond seed noise, and weaker ones rank below. Every red-team shortcut is closed. The full-memory-bank brute force and the public MVTec-AD annotations are left to the grader as stated constraints.
 
+### [2026-11-20] - core_claim_plus
+- Final hardening (see HARDENING.md).
+- The reference is now the paper's full-shot AnomalDF+UCF (Table XXIV): the filter is trained with N = 3 random templates and applied to the whole category memory bank. Following the authors' code, the cost volume keeps the 256 lowest costs per token, so the same model takes both volumes. The full-bank AnomalDF brute force is now the baseline. VisA was added as a second hidden experiment, which grows the hidden test from 880 to 2,308 images.
+- Hidden test, reference vs full-bank baseline, image / pixel AUROC: MVTec-AD 96.75/95.28 -> 96.88/96.59 (pixel AP 44.6 -> 62.1); VisA 87.71/94.53 -> 88.61/94.80 (pixel AP 23.4 -> 29.4).
+- The VisA image-level gain is significant (+0.90, 95% CI [+0.38, +1.46]). The paper's guidance and loss ablations now point the paper's way. Every shortcut fails or ties the reference.
+- Not achieved: no better variant beats the seed-0 reference beyond seed noise (seed 0 is the best of 5 seeds), and MVTec-AD image AUROC does not improve robustly across seeds.
+
 ## Stop Justification
 - Completed at milestone `core_claim_plus`.
