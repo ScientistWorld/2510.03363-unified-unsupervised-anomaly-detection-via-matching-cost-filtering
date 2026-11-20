@@ -1,4 +1,3 @@
-action: submit
-gpus: 2
-test: false
-notes: "Resume the follow-up study with the checkpoint-resume fix: finish seeds 3-4 on MVTec-AD/VisA from their per-epoch checkpoints, 5-seed ensembles, score new rows, paired bootstrap, validate."
+action: done
+milestone: core_claim_plus
+notes: "Final hardening: reference = paper's full-shot AnomalDF+UCF (full memory bank is now the baseline, -3.79), VisA added as second hidden experiment (880 -> 2,308 hidden images; VisA image-level gain significant), all shortcuts fail or tie; no better variant beats the lucky seed-0 reference beyond seed noise and MVTec image AUROC gain is not seed-robust (stated in HARDENING.md)."
