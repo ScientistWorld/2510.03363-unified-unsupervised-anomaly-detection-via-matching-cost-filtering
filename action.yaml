@@ -1,4 +1,4 @@
 action: submit
 gpus: 2
 test: false
-notes: "Follow-up study job (resumes; finished rows skipped): wider UCF filter (128/192/256) and training seeds 3-4 on MVTec-AD and VisA, 5-seed ensemble and ensembles at lambda 0.25, rescoring + paired bootstrap, validate."
+notes: "Resume the follow-up study with the checkpoint-resume fix: finish seeds 3-4 on MVTec-AD/VisA from their per-epoch checkpoints, 5-seed ensembles, score new rows, paired bootstrap, validate."
