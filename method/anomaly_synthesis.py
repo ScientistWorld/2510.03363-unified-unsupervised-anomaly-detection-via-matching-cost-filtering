@@ -115,7 +115,8 @@ class AnomalySynthesizer:
 
     def load_state(self, state: dict) -> None:
         self.rng.bit_generator.state = state["rng"]
-        self.gen.set_state(state["gen"])
+        # torch.load(map_location=cuda) moves the saved state to the GPU; set_state needs a CPU ByteTensor
+        self.gen.set_state(state["gen"].cpu())
 
     def _mask(self, size: int) -> torch.Tensor:
         res = (2 ** int(self.rng.integers(0, PERLIN_MAX_SCALE)), 2 ** int(self.rng.integers(0, PERLIN_MAX_SCALE)))
